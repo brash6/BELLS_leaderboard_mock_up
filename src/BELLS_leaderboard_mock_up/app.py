@@ -4,8 +4,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 
-from BELLS_leaderboard_mock_up.recommender import recommendation_ui
-from BELLS_leaderboard_mock_up.playground import playground_ui
+from recommender import recommendation_ui
+from playground import playground_ui
 
 # Read the CSV file
 @st.cache_data
