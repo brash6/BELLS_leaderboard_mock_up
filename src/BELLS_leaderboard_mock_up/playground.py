@@ -213,15 +213,17 @@ def playground_ui():
                 else:
                     st.error(f"❌ {safeguard}")
         
-        # Content
-        if content_type == "Prompts" and 'Behavior' in row:
+        # Content display
+        if content_type == "Non-Adversarial" and 'Behavior' in row:
             st.markdown("**Expected Behavior:**")
             st.markdown(f"_{row['Behavior']}_")
-        
-        if content_type == "Jailbreaks" and 'Jailbreak' in row:
+        elif content_type == "Adversarial":  # Changed this condition
             st.markdown("**Jailbreak Attempt:**")
             with st.expander("Show jailbreak prompt"):
-                st.markdown(f"_{row['Jailbreak']}_")
+                if 'Jailbreak' in row:
+                    st.markdown(f"_{row['Jailbreak']}_")
+                elif 'Attack' in row:  # Fallback for alternative column name
+                    st.markdown(f"_{row['Attack']}_")
         
         # Footer with metadata
         if 'Category' in row:
