@@ -44,11 +44,11 @@ def main():
         
         Several leading safeguards are evaluated in this benchmark:
 
-        - **[Lakera Guard](https://www.lakera.ai/products/lakera-guard)**: Industry-leading content filtering API
+        - **[Lakera Guard](https://www.lakera.ai/)**: Industry-leading content filtering API
         - **[NVIDIA NeMo Guardrails](https://github.com/NVIDIA/NeMo-Guardrails)**: Open-source framework for LLM safety
-        - **[LLM Guard](https://github.com/lm-guard/llm-guard)**: Comprehensive open-source safety toolkit  
-        - **[Langkit](https://www.langkit.ai/)**: Lightweight content filtering solution
-        - **[Prompt Guard](https://promptguard.ai/)**: Specialized jailbreak detection system
+        - **[LLM Guard](https://llm-guard.com/)**: Comprehensive open-source safety toolkit  
+        - **[Langkit](https://github.com/whylabs/langkit)**: Lightweight content filtering solution
+        - **[Prompt Guard](https://www.llama.com/docs/model-cards-and-prompt-formats/prompt-guard/)**: Specialized jailbreak detection system
 
         These safeguards represent different approaches to LLM safety, from 
         commercial APIs to open-source frameworks, each with their own strengths
