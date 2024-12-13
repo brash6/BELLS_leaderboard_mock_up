@@ -29,12 +29,13 @@ def generate_recommendation(user_preferences, evaluation_data):
     {data_context}
 
     USER PREFERENCES:
-    - System Type: {user_preferences['system_type']}
-    - RAG Usage: {user_preferences['rag_usage']}
+    - System Access Type: {user_preferences['system_type']}
+    - Interaction Types: {user_preferences['interaction_types']}
+    - User Types: {user_preferences['user_types']}
     - Conservativeness Level: {user_preferences['conservativeness']}
     - Primary Concerns: {user_preferences['primary_concerns']}
     - Expected Request Volume: {user_preferences['request_volume']}
-    - Expected Jailbreak Proportion: {user_preferences['jailbreak_proportion']}
+    - Expected Risk Level: {user_preferences['jailbreak_proportion']}
     - False Positive Tolerance: {user_preferences['fpr_tolerance']}
 
     Please provide:
@@ -66,29 +67,45 @@ def recommendation_ui():
     st.markdown("""
     Welcome to the BELLS Safeguard Recommendation System! 🛡️
 
-    Choosing the right safeguard for your LLM system can be challenging. This tool will help you find 
-    the most suitable safeguard(s) based on your specific needs and constraints.
-    
-    Simply answer a few questions about your system and requirements, and we'll provide personalized 
-    recommendations based on our comprehensive evaluation data.
-    
-    Let's get started! 🚀
+    This tool will help you find the most suitable safeguard(s) based on your specific needs and constraints.
+    Please answer the following questions about your system and requirements to receive personalized recommendations.
     """)
     
     st.markdown("---")
     
-    # System Configuration
+    # System Configuration with better explanation
     st.subheader("System Configuration")
-    system_type = st.radio(
-        "System Type",
-        ["Black Box", "White Box"],
-        help="Black box systems only access inputs/outputs, while white box systems can access model internals"
+    col1, col2 = st.columns(2)
+    with col1:
+        system_type = st.radio(
+            "What type of system access do you have?",
+            ["Black Box API", "Direct Access"],
+            help="""Choose your system access type:
+            - Black Box API: You only have API access (e.g., OpenAI API, Claude API)
+            - Direct Access: You have access to the model weights or deployment infrastructure"""
+        )
+    with col2:
+        rag_enabled = st.radio(
+            "Will you use Retrieval Augmented Generation (RAG)?",
+            ["Yes", "No"],
+            help="Select whether your system will use RAG to enhance responses with external knowledge"
+        )
+    
+    # Use Case Questions instead of RAG
+    st.subheader("Use Case Assessment")
+    
+    interaction_types = st.multiselect(
+        "What types of interactions will your system handle?",
+        ["General chat/conversation", "Content generation", "Code generation", 
+         "Data analysis", "Expert advice", "Customer service"],
+        help="Select all types of interactions that apply to your use case"
     )
     
-    rag_usage = st.radio(
-        "RAG Implementation",
-        ["Yes", "No"],
-        help="Whether your system uses Retrieval-Augmented Generation"
+    user_types = st.multiselect(
+        "What types of users will interact with your system?",
+        ["General public", "Authenticated users only", "Internal employees", 
+         "Technical users", "Students/Educational"],
+        help="Select all user types that will have access to your system"
     )
     
     # Security Preferences with example prompts
@@ -107,9 +124,12 @@ def recommendation_ui():
         """)
     
     conservativeness = st.slider(
-        "Conservativeness Level (1: Allow all, 5: Block all such content)",
+        "Conservativeness Level",
         1, 5, 3,
-        help="Based on the examples above, how conservative should your system be?"
+        help="""Based on the examples above:
+        - Level 1: Minimal filtering (high risk tolerance)
+        - Level 3: Balanced approach
+        - Level 5: Maximum security (very conservative)"""
     )
     
     primary_concerns = st.multiselect(
@@ -119,41 +139,63 @@ def recommendation_ui():
         help="Select your main security priorities"
     )
     
-    # Operational Requirements
+    # Operational Requirements with detailed explanations
     st.subheader("Operational Requirements")
+    
+    st.markdown("""
+    These parameters help us recommend safeguards that match your operational needs.
+    """)
+
+    st.warning("""Note that this is a mock-up demonstration using an LLM to generate recommendations based on your inputs and 
+               simulated evaluation results. In a production system, the recommendations would be based on real-world performance data and 
+               more sophisticated matching algorithms.""")
+    
     request_volume = st.select_slider(
         "Expected Request Volume",
-        options=["Low (<1k/day)", "Medium (1k-10k/day)", "High (>10k/day)"]
+        options=["Low (<1k/day)", "Medium (1k-10k/day)", "High (>10k/day)"],
+        help="""Affects performance and scaling requirements:
+        - Low: Suitable for basic API implementations
+        - Medium: May require optimization
+        - High: Needs enterprise-grade solutions"""
     )
     
-    jailbreak_proportion = st.select_slider(
-        "Expected Jailbreak Proportion",
-        options=["Very Low (<1%)", "Low (1-5%)", "Medium (5-15%)", "High (>15%)"]
+    risk_level = st.select_slider(
+        "Expected Risk Level",
+        options=["Very Low (<1%)", "Low (1-5%)", "Medium (5-15%)", "High (>15%)"],
+        help="""Likelihood of receiving adversarial/jailbreak attempts:
+        - Very Low: General purpose, low-risk applications
+        - Medium: Public-facing applications
+        - High: Applications likely to face adversarial attempts"""
     )
     
     fpr_tolerance = st.select_slider(
         "False Positive Tolerance",
         options=["Very Low", "Low", "Medium", "High"],
-        help="How tolerant is your system to false positives?"
+        help="""How much over-filtering can your application accept:
+        - Very Low: Critical applications where blocking valid content is costly
+        - Medium: Balance between security and usability
+        - High: Security is priority over occasional false positives"""
     )
     
-    # Generate Recommendation
+    # Generate Recommendation with loading indicator
     if st.button("Get Recommendation"):
-        user_preferences = {
-            "system_type": system_type,
-            "rag_usage": rag_usage,
-            "conservativeness": conservativeness,
-            "primary_concerns": primary_concerns,
-            "request_volume": request_volume,
-            "jailbreak_proportion": jailbreak_proportion,
-            "fpr_tolerance": fpr_tolerance
-        }
-        
-        evaluation_data = load_evaluation_data()
-        recommendation = generate_recommendation(user_preferences, evaluation_data)
-        
-        st.markdown("### Recommendation")
-        st.markdown(recommendation)
+        with st.spinner('Analyzing your requirements and generating recommendations...'):
+            user_preferences = {
+                "system_type": system_type,
+                "interaction_types": interaction_types,
+                "user_types": user_types,
+                "conservativeness": conservativeness,
+                "primary_concerns": primary_concerns,
+                "request_volume": request_volume,
+                "jailbreak_proportion": risk_level,
+                "fpr_tolerance": fpr_tolerance
+            }
+            
+            evaluation_data = load_evaluation_data()
+            recommendation = generate_recommendation(user_preferences, evaluation_data)
+            
+            st.markdown("### Recommendation")
+            st.markdown(recommendation)
 
 if __name__ == "__main__":
     recommendation_ui() 

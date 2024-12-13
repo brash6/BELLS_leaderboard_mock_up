@@ -14,12 +14,16 @@ def playground_ui():
     You can:
     - Compare different safeguards' detection capabilities
     - Test various prompt categories (Harmful, Borderline, Benign)
-    - Explore both direct prompts and jailbreak attempts
+    - Explore both direct prompts and adversarial attempts
     - Filter by specific harm categories
     - Search through our comprehensive prompt database
     
     Each prompt shows real-time detection results based on our evaluation data, helping you understand 
     how safeguards perform in different scenarios.
+    
+    📋 **Legend:**
+    - ✅ Content detected/blocked by safeguard
+    - ❌ Content allowed by safeguard
     
     Use the filters below to customize your exploration! 🔍
     """)
@@ -30,9 +34,9 @@ def playground_ui():
     data_dir = Path(__file__).parent.parent.parent / 'data'
     
     # Load datasets with correct paths
-    harmful_prompts = pd.read_csv(data_dir / 'harmful_vanilla.csv')
-    borderline_prompts = pd.read_csv(data_dir / 'borderline_vanilla.csv') 
-    benign_prompts = pd.read_csv(data_dir / 'benign_vanilla.csv')
+    harmful_prompts = pd.read_csv(data_dir / 'harmful_non-adversarial.csv')
+    borderline_prompts = pd.read_csv(data_dir / 'borderline_non-adversarial.csv') 
+    benign_prompts = pd.read_csv(data_dir / 'benign_non-adversarial.csv')
     harmful_jailbreaks = pd.read_csv(data_dir / 'harmful_jailbreaks.csv')
     borderline_jailbreaks = pd.read_csv(data_dir / 'borderline_jailbreaks.csv')
     benign_jailbreaks = pd.read_csv(data_dir / 'benign_jailbreaks.csv')
@@ -51,34 +55,45 @@ def playground_ui():
     with col2:
         content_type = st.radio(
             "Content Type",
-            ["Prompts", "Jailbreaks"],
-            horizontal=True
+            ["Non-Adversarial", "Adversarial"],
+            horizontal=True,
+            help="Non-Adversarial: Direct prompts | Adversarial: Jailbreak attempts"
         )
         
-    # Add warning for jailbreak content
-    if content_type == "Jailbreaks":
+    # Add warning for adversarial content with dataset links
+    if content_type == "Adversarial":
         st.warning("""
-            ⚠️ **Note**: The jailbreak datasets contain thousands of entries. 
-            For readability, only a sample of 40 jailbreak attempts is shown below.
+            ⚠️ **Note**: The adversarial datasets contain thousands of entries. 
+            For readability, only a sample of 40 attempts is shown below.
             
-            Complete jailbreak datasets can be found in:
-            - data/benign_jailbreaks.csv
-            - data/borderline_jailbreaks.csv
-            - data/harmful_jailbreaks.csv
+            Complete datasets available on GitHub:
+            - [Benign Adversarial Dataset](https://github.com/brash6/BELLS_leaderboard_mock_up/blob/main/data/benign_jailbreaks.csv)
+            - [Borderline Adversarial Dataset](https://github.com/brash6/BELLS_leaderboard_mock_up/blob/main/data/borderline_jailbreaks.csv)
+            - [Harmful Adversarial Dataset](https://github.com/brash6/BELLS_leaderboard_mock_up/blob/main/data/harmful_jailbreaks.csv)
         """)
     
-    # Safeguard selection
+    # Safeguard selection without arrows
     with col3:
         safeguard = st.selectbox(
             "Select Safeguard",
-            ["All Safeguards"] + evaluation_results['safeguard'].tolist()
+            ["All Safeguards"] + evaluation_results['safeguard'].tolist(),
+            label_visibility="visible"
         )
     
     # Get appropriate dataset based on selection
     datasets = {
-        'Harmful': {'Prompts': harmful_prompts, 'Jailbreaks': harmful_jailbreaks.sample(n=40)},
-        'Borderline': {'Prompts': borderline_prompts, 'Jailbreaks': borderline_jailbreaks.sample(n=40)},
-        'Benign': {'Prompts': benign_prompts, 'Jailbreaks': benign_jailbreaks.sample(n=40)}
+        'Harmful': {
+            'Non-Adversarial': harmful_prompts, 
+            'Adversarial': harmful_jailbreaks.sample(n=40)
+        },
+        'Borderline': {
+            'Non-Adversarial': borderline_prompts, 
+            'Adversarial': borderline_jailbreaks.sample(n=40)
+        },
+        'Benign': {
+            'Non-Adversarial': benign_prompts, 
+            'Adversarial': benign_jailbreaks.sample(n=40)
+        }
     }
     
     current_dataset = datasets[dataset_type][content_type]
@@ -92,8 +107,12 @@ def playground_ui():
             if selected_category != 'All':
                 current_dataset = current_dataset[current_dataset['Category'] == selected_category]
     
-    # Add search functionality
-    search_query = st.text_input("🔍 Search prompts...", "")
+    # Add search functionality with example
+    search_query = st.text_input(
+        "🔍 Search prompts...", 
+        placeholder="e.g., 'generate code' or 'financial advice'",
+        help="Search through prompt goals and descriptions"
+    )
     
     # Filter based on search
     if search_query:
@@ -103,8 +122,8 @@ def playground_ui():
     
     # Get detection probability based on dataset type and safeguard
     def get_detection_probability(safeguard_name, dataset_type, content_type):
-        if content_type == 'Prompts':
-            column_name = f"{dataset_type.lower()}_vanilla"
+        if content_type == 'Non-Adversarial':
+            column_name = f"{dataset_type.lower()}_non-adversarial"
         else:
             column_name = f"{dataset_type.lower()}_jailbreaks"
         return evaluation_results[evaluation_results['safeguard'] == safeguard_name][column_name].iloc[0]
@@ -129,18 +148,30 @@ def playground_ui():
     # Display statistics in metrics
     if safeguard == "All Safeguards":
         cols = st.columns(len(evaluation_results) + 1)
-        cols[0].metric("Total Prompts", total_count)
+        cols[0].metric(
+            label="Total Prompts",
+            value=total_count
+        )
         for i, (name, count) in enumerate(detected_counts.items(), 1):
             cols[i].metric(
-                f"{name}",
-                f"{(count/total_count*100):.1f}%",
-                f"{count}/{total_count}"
+                label=f"{name}",
+                value=f"{(count/total_count*100):.1f}%",
+                help=f"{count}/{total_count}"
             )
     else:
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Prompts", total_count)
-        col2.metric("Detected", detected_count)
-        col3.metric("Detection Rate", f"{(detected_count/total_count*100):.1f}%")
+        col1.metric(
+            label="Total Prompts",
+            value=total_count
+        )
+        col2.metric(
+            label="Detected",
+            value=detected_count
+        )
+        col3.metric(
+            label="Detection Rate",
+            value=f"{(detected_count/total_count*100):.1f}%"
+        )
     
     st.markdown("---")
     
