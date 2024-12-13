@@ -58,7 +58,7 @@ def generate_recommendation(user_preferences, evaluation_data):
 def get_example_prompts():
     """Cache the random examples so they don't change on slider interaction"""
     data_dir = Path(__file__).parent.parent.parent / 'data'
-    borderline_prompts = pd.read_csv(data_dir / 'borderline_vanilla.csv')
+    borderline_prompts = pd.read_csv(data_dir / 'borderline_non-adversarial.csv')
     return borderline_prompts.sample(n=3)
 
 def recommendation_ui():
