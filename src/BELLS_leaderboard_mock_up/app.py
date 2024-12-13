@@ -362,6 +362,7 @@ def add_footer():
         text-align: center;
         padding: 15px;
         border-top: 1px solid #e9ecef;
+        z-index: 1000;
     }}
 
     .footer-content {{
@@ -371,17 +372,43 @@ def add_footer():
         align-items: center;
         justify-content: center;
         padding: 0 2rem;
+        gap: 10px;  /* Space between text and logo */
+    }}
+
+    .footer-text {{
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin: 0;
     }}
 
     .footer-logo {{
         height: 45px;
         width: auto;
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+    }}
+
+    .footer-link {{
+        display: block;
+        text-decoration: none;
+    }}
+
+    .footer-logo:hover {{
+        opacity: 0.8;
+    }}
+
+    /* Style for the heart symbol */
+    .heart {{
+        color: #ff4b4b;
     }}
     </style>
 
     <div class="footer">
         <div class="footer-content">
-            <img src="data:image/png;base64,{logo_base64}" class="footer-logo">
+            <span class="footer-text">Made by Hadrien Mariaccia from the</span>
+            <a class="footer-link" href="https://www.securite-ia.fr/" target="_blank" rel="noopener noreferrer">
+                <img src="data:image/png;base64,{logo_base64}" class="footer-logo" alt="CSIA Logo">
+            </a>
         </div>
     </div>
     """
