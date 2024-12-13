@@ -12,10 +12,10 @@ def get_example_prompts():
     return borderline_prompts.sample(n=3)
 
 def playground_ui():
-    st.title("Playground")
+    st.title("Data Playground")
     
     st.markdown("""
-    Welcome to the BELLS Playground! 🎮
+    Welcome to the BELLS Data Playground! 🎮
 
     This interactive environment allows you to explore how different safeguards perform against various types of prompts. 
     You can:

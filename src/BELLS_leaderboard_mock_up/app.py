@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
+import base64
 
 from recommender import recommendation_ui
 from playground import playground_ui
@@ -18,15 +19,25 @@ def load_data():
 def get_image_path(image_name):
     return Path(__file__).parent.parent.parent / 'images' / image_name
 
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
 def main():
     # Add navigation in sidebar
     page = st.sidebar.radio(
         "Navigation",
-        ["Leaderboard", "Recommendation", "Playground"]
+        ["Leaderboard", "Recommendation", "Data Playground"]
     )
     
     if page == "Leaderboard":
         st.title("Benchmark for the Evaluation of LLM Safeguards (BELLS) Leaderboard")
+
+        st.error("""
+        ⚠️ DISCLAIMER: All evaluation results shown are simulated for demonstration purposes only and do not 
+        reflect actual performance of the safeguards.
+        """)
 
         st.write("""The rise of large language models (LLMs) has been accompanied by the emergence of vulnerabilities, 
                    such as jailbreaks and prompt injections, which exploit these systems to bypass constraints and induce harmful 
@@ -71,8 +82,7 @@ def main():
            - 80 narrative-based jailbreak templates from "rubend18/ChatGPT-Jailbreak-Prompts"
            - Used to generate combinations with prompts of varying harmfulness levels
         
-        Note: All evaluation results shown are simulated for demonstration purposes only and do not 
-        reflect actual performance of the safeguards. The benchmark structure simulates combinations 
+        Note: The benchmark structure simulates combinations 
         of jailbreak templates with prompts across different harmfulness categories (as illustrated 
         in the adversariality vs. harmfulness matrix).
         """)
@@ -122,11 +132,11 @@ def main():
            - Note: For simplification, we assume the moral line precedes the legal line, though this may vary in reality
         
         ### Key Metrics
-        - <b><span style='color:#69db7c'>TPR Adversarial Harmful</span></b> : True Positive Rate for detecting harmful adversarial prompts
-        - <b><span style='color:#38d9a9'>TPR Non-Adversarial Harmful</span></b> : True Positive Rate for detecting harmful non-adversarial prompts
+        - <b><span style='color:#e03131'>TPR Adversarial Harmful</span></b> : True Positive Rate for detecting harmful adversarial prompts
+        - <b><span style='color:#ff8787'>TPR Non-Adversarial Harmful</span></b> : True Positive Rate for detecting harmful non-adversarial prompts
         - <b><span style='color:#9775fa'>Adversarial Sensitivity</span></b> : Detection rate on non-harmful adversarial prompts
         - <b><span style='color:#ffa94d'>Borderline Sensitivity</span></b> : Detection rate on borderline non-adversarial prompts
-        - <b><span style='color:#ff8787'>FPR</span></b> : False Positive Rate on non-harmful non-adversarial prompts, measuring over-triggering on safe content
+        - <b><span style='color:#69db7c'>FPR</span></b> : False Positive Rate on non-harmful non-adversarial prompts, measuring over-triggering on safe content
 
         ### Note on Borderline Adversarial Prompts
         
@@ -139,7 +149,7 @@ def main():
         
         ### BELLS Score
         
-        BELLS score = (<span style='color:#69db7c'>TPR Adversarial Harmful</span> + <span style='color:#38d9a9'>TPR Non-Adversarial Harmful</span> + (1 - <span style='color:#ff8787'>FPR</span>)) / 3
+        BELLS score = (<span style='color:#e03131'>TPR Adversarial Harmful</span> + <span style='color:#ff8787'>TPR Non-Adversarial Harmful</span> + (1 - <span style='color:#69db7c'>FPR</span>)) / 3
         
         This balanced metric combines detection rates for both adversarial and vanilla prompts while penalizing false positives.
         """, unsafe_allow_html=True)
@@ -191,7 +201,7 @@ def main():
         st.markdown("""
         This section shows the prevention scores for each harm category, calculated as:
         
-        **Prevention Score** = (<span style='color:#69db7c'>TPR Adversarial Harmful</span> + <span style='color:#38d9a9'>TPR Non-Adversarial Harmful</span>) / 2
+        **Prevention Score** = (<span style='color:#e03131'>TPR Adversarial Harmful</span> + <span style='color:#ff8787'>TPR Non-Adversarial Harmful</span>) / 2
         
         This metric combines detection rates for both adversarial and non-adversarial harmful prompts to give a balanced view of prevention effectiveness.
         """, unsafe_allow_html=True)
@@ -333,5 +343,63 @@ def main():
     else:  # page == "Playground"
         playground_ui()
 
+def add_footer():
+    # Get the logo path using the existing function
+    logo_path = get_image_path("logo_cesia_full.png")
+    
+    # Convert image to base64
+    logo_base64 = get_base64_of_bin_file(logo_path)
+    
+    footer_html = f"""
+    <style>
+    .footer {{
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: white;
+        color: black;
+        text-align: center;
+        padding: 15px;
+        border-top: 1px solid #e9ecef;
+    }}
+
+    .footer-content {{
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2rem;
+    }}
+
+    .footer-logo {{
+        height: 45px;
+        width: auto;
+    }}
+    </style>
+
+    <div class="footer">
+        <div class="footer-content">
+            <img src="data:image/png;base64,{logo_base64}" class="footer-logo">
+        </div>
+    </div>
+    """
+    
+    # Add padding to prevent content from being hidden behind the footer
+    st.markdown(
+        """
+        <style>
+            .main {
+                padding-bottom: 80px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.markdown(footer_html, unsafe_allow_html=True)
+
 if __name__ == "__main__":
     main()
+    add_footer()
