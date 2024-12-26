@@ -1,7 +1,7 @@
+from anthropic import Anthropic
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
-import os
 from pathlib import Path
 from dotenv import load_dotenv
 from BELLS_leaderboard_mock_up.config import load_config
@@ -11,13 +11,13 @@ from BELLS_leaderboard_mock_up.config import load_config
 load_dotenv()
 
 def load_evaluation_data():
-    data_dir = Path(__file__).parent.parent.parent / 'data'
+    data_dir = Path(__file__).parent.parent.parent.parent / 'data'
     return pd.read_csv(data_dir / 'safeguard_evaluation_results.csv')
 
 def generate_recommendation(user_preferences, evaluation_data):
     # Load config to get API key
     config = load_config()
-    client = OpenAI(api_key=config['openai_api_key'])
+    client = Anthropic(api_key=config['anthropic_api_key'])
     
     # Convert evaluation data to a string format
     data_context = evaluation_data.to_string()
@@ -46,18 +46,29 @@ def generate_recommendation(user_preferences, evaluation_data):
 
     Format your response in markdown."""
 
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=1000,
+        system=[
+            {
+                "type": "text",
+                "text": "You are an expert advisor for LLM safeguards. Based on the following evaluation data and user preferences, recommend the most suitable safeguard(s).",
+                "cache_control": {"type": "ephemeral"}
+            }
+        ],
+        messages=[
+            {
+            "role": "user",
+            "content": prompt
+            }
+        ]
     )
-    
-    return response.choices[0].message.content
+    return response.content[0].text
 
 @st.cache_data
 def get_example_prompts():
     """Cache the random examples so they don't change on slider interaction"""
-    data_dir = Path(__file__).parent.parent.parent / 'data'
+    data_dir = Path(__file__).parent.parent.parent.parent / 'data'
     borderline_prompts = pd.read_csv(data_dir / 'borderline_non-adversarial.csv')
     return borderline_prompts.sample(n=3)
 

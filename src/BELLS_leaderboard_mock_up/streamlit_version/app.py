@@ -11,13 +11,13 @@ from playground import playground_ui
 # Read the CSV file
 @st.cache_data
 def load_data():
-    data_dir = Path(__file__).parent.parent.parent / 'data'
+    data_dir = Path(__file__).parent.parent.parent.parent / 'data'
     df = pd.read_csv(data_dir / 'safeguard_evaluation_results.csv')
     return df
 
 # Get the path for images
 def get_image_path(image_name):
-    return Path(__file__).parent.parent.parent / 'images' / image_name
+    return Path(__file__).parent.parent.parent.parent / 'images' / image_name
 
 def get_base64_of_bin_file(bin_file):
     with open(bin_file, 'rb') as f:

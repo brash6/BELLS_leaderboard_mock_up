@@ -7,7 +7,7 @@ from pathlib import Path
 @st.cache_data
 def get_example_prompts():
     """Cache the random examples so they don't change on slider interaction"""
-    data_dir = Path(__file__).parent.parent.parent / 'data'
+    data_dir = Path(__file__).parent.parent.parent.parent / 'data'
     borderline_prompts = pd.read_csv(data_dir / 'borderline_non-adversarial.csv')
     return borderline_prompts.sample(n=3)
 
@@ -38,7 +38,7 @@ def playground_ui():
     st.markdown("---")
     
     # Get the data directory path
-    data_dir = Path(__file__).parent.parent.parent / 'data'
+    data_dir = Path(__file__).parent.parent.parent.parent / 'data'
     
     # Load datasets with correct paths
     harmful_prompts = pd.read_csv(data_dir / 'harmful_non-adversarial.csv')
