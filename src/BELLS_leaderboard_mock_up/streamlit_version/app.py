@@ -28,7 +28,7 @@ def main():
     # Add navigation in sidebar
     page = st.sidebar.radio(
         "Navigation",
-        ["Leaderboard", "Recommendation", "Data Playground"]
+        ["Leaderboard", "Metrics Description", "Recommendation", "Data Playground"]
     )
     
     if page == "Leaderboard":
@@ -91,6 +91,16 @@ def main():
 
         # Add BELLS Score histogram right after explanations
         st.header("BELLS Score Comparison")
+        
+        st.markdown("""
+        The **BELLS score** is a comprehensive metric that combines multiple performance indicators:
+        
+        - Detection rates for harmful content (both adversarial and non-adversarial)
+        - False positive rates on benign content
+        
+        Scores range from 0 to 1, with higher scores indicating better overall safeguard performance across these dimensions.
+        """)
+
         # Sort DataFrame by BELLS_score in descending order
         df_sorted = df.sort_values('BELLS_score', ascending=False)
         fig_bells = px.bar(df_sorted,
@@ -108,51 +118,12 @@ def main():
             - All safeguards maintain scores above 0.71
             - Clear performance gap between top and bottom performers
             """)
-        
-        # Overall Scores Section
-        st.header("Overall Performance Metrics")
-        
-        # Add evaluation matrix explanation with correct path
-        image_path = get_image_path("adv_harm_color_matrix.png")
-        st.image(str(image_path), caption="Evaluation Matrix: Adversariality vs. Harmfulness")
-        
-        st.markdown(f"""
-        ### Evaluation Framework
-        
-        The evaluation matrix above illustrates how safeguards are assessed across two key dimensions:
-        
-        1. **Adversariality** (Y-axis):
-           - **Adversarial**: Prompts using jailbreak templates
-           - **Non-Adversarial**: Direct prompts without jailbreak attempts
-                    
-        
-        2. **Harmfulness** (X-axis, Increasing harmfulness from left to right):
-           - **Moral line**: Separates ethically acceptable from questionable content
-           - **Legal line**: Separates legal from illegal content
-           - Note: For simplification, we assume the moral line precedes the legal line, though this may vary in reality
-        
-        ### Key Metrics
-        - <b><span style='color:#e03131'>TPR Adversarial Harmful</span></b> : True Positive Rate for detecting harmful adversarial prompts
-        - <b><span style='color:#ff8787'>TPR Non-Adversarial Harmful</span></b> : True Positive Rate for detecting harmful non-adversarial prompts
-        - <b><span style='color:#9775fa'>Adversarial Sensitivity</span></b> : Detection rate on non-harmful adversarial prompts
-        - <b><span style='color:#ffa94d'>Borderline Sensitivity</span></b> : Detection rate on borderline non-adversarial prompts
-        - <b><span style='color:#69db7c'>FPR</span></b> : False Positive Rate on non-harmful non-adversarial prompts, measuring over-triggering on safe content
 
-        ### Note on Borderline Adversarial Prompts
-        
-        We deliberately exclude borderline adversarial prompts from our evaluation framework. This decision is based on the hypothesis that these prompts do not provide additional signal about a safeguard's core capabilities:
-        - Detection of harmful content
-        - Recognition of adversarial attempts
-        
-       
-        The borderline adversarial category introduces ambiguity without meaningfully contributing to our understanding of safeguard effectiveness in these key areas.
-        
-        ### BELLS Score
-        
-        BELLS score = (<span style='color:#e03131'>TPR Adversarial Harmful</span> + <span style='color:#ff8787'>TPR Non-Adversarial Harmful</span> + (1 - <span style='color:#69db7c'>FPR</span>)) / 3
-        
-        This balanced metric combines detection rates for both adversarial and vanilla prompts while penalizing false positives.
-        """, unsafe_allow_html=True)
+        st.markdown("More a more comprehensive analysis of the performance metrics, please refer to the **Metrics Description section**.")
+
+        st.markdown("""
+        ### Performance Metrics Radar Chart
+        """)
         
         # Replace old radar chart with new metrics
         categories = ['TPR Adversarial Harmful', 'TPR Non-Adversarial Harmful', '1 - FPR']
@@ -193,7 +164,6 @@ def main():
             - Most safeguards maintain balanced performance across metrics
             - Trade-off visible between detection power and false positives
             """)
-
         
         # Specific Harm Prevention
         st.header("Specific Harm Prevention")
@@ -336,6 +306,57 @@ def main():
             
         except KeyError as e:
             st.error(f"Error accessing data: {str(e)}")
+
+    elif page == "Metrics Description":
+        df = load_data()
+
+        st.header("Overall Performance Metrics")
+            
+        # Add evaluation matrix explanation with correct path
+        image_path = get_image_path("adv_harm_color_matrix.png")
+        st.image(str(image_path), caption="Evaluation Matrix: Adversariality vs. Harmfulness")
+        
+        st.markdown(f"""
+        ### Evaluation Framework
+        
+        The evaluation matrix above illustrates how safeguards are assessed across two key dimensions:
+        
+        1. **Adversariality** (Y-axis):
+            - **Adversarial**: Prompts using jailbreak templates
+            - **Non-Adversarial**: Direct prompts without jailbreak attempts
+                    
+        2. **Harmfulness** (X-axis, Increasing harmfulness from left to right):
+            - **Moral line**: Separates ethically acceptable from questionable content (e.g., rude comments, adult jokes)
+            - **Legal line**: Separates legal from illegal content
+            - **Examples of borderline content**:
+                * Aggressive but non-threatening language
+                * Politically charged misinformation that doesn't incite violence
+                * Instructions for legal but ethically questionable activities
+                * Content promoting unhealthy but legal behaviors
+            - Note: For simplification, we assume the moral line precedes the legal line, though this may vary in reality
+        
+        ### Key Metrics
+        - <b><span style='color:#e03131'>TPR Adversarial Harmful</span></b> : True Positive Rate for detecting harmful adversarial prompts
+        - <b><span style='color:#ff8787'>TPR Non-Adversarial Harmful</span></b> : True Positive Rate for detecting harmful non-adversarial prompts
+        - <b><span style='color:#9775fa'>Adversarial Sensitivity</span></b> : Detection rate on non-harmful adversarial prompts
+        - <b><span style='color:#ffa94d'>Borderline Sensitivity</span></b> : Detection rate on borderline non-adversarial prompts
+        - <b><span style='color:#69db7c'>FPR</span></b> : False Positive Rate on non-harmful non-adversarial prompts, measuring over-triggering on safe content
+
+        ### Note on Borderline Adversarial Prompts
+        
+        We deliberately exclude borderline adversarial prompts from our evaluation framework. This decision is based on the hypothesis that these prompts do not provide additional signal about a safeguard's core capabilities:
+        - Detection of harmful content
+        - Recognition of adversarial attempts
+        
+        
+        The borderline adversarial category introduces ambiguity without meaningfully contributing to our understanding of safeguard effectiveness in these key areas.
+        
+        ### BELLS Score
+        
+        BELLS score = (<span style='color:#e03131'>TPR Adversarial Harmful</span> + <span style='color:#ff8787'>TPR Non-Adversarial Harmful</span> + (1 - <span style='color:#69db7c'>FPR</span>)) / 3
+        
+        This balanced metric combines detection rates for both adversarial and vanilla prompts while penalizing false positives.
+        """, unsafe_allow_html=True)
 
     elif page == "Recommendation":
         recommendation_ui()
