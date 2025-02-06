@@ -5,11 +5,12 @@ import os
 from pathlib import Path
 
 @st.cache_data
-def get_example_prompts():
-    """Cache the random examples so they don't change on slider interaction"""
+def load_data():
+    """Cache the data loading"""
     data_dir = Path(__file__).parent.parent.parent.parent / 'data'
-    borderline_prompts = pd.read_csv(data_dir / 'borderline_non-adversarial.csv')
-    return borderline_prompts.sample(n=3)
+    non_adversarial = pd.read_csv(data_dir / 'non_adversarial_prompts.csv')
+    adversarial = pd.read_csv(data_dir / 'adversarial_prompts.csv')
+    return non_adversarial, adversarial
 
 def playground_ui():
     st.title("Data Playground")
@@ -25,9 +26,6 @@ def playground_ui():
     - Filter by specific harm categories
     - Search through our comprehensive prompt database
     
-    Each prompt shows real-time detection results based on our evaluation data, helping you understand 
-    how safeguards perform in different scenarios.
-    
     📋 **Legend:**
     - ✅ Content detected/blocked by safeguard
     - ❌ Content allowed by safeguard
@@ -37,25 +35,16 @@ def playground_ui():
     
     st.markdown("---")
     
-    # Get the data directory path
-    data_dir = Path(__file__).parent.parent.parent.parent / 'data'
-    
-    # Load datasets with correct paths
-    harmful_prompts = pd.read_csv(data_dir / 'harmful_non-adversarial.csv')
-    borderline_prompts = pd.read_csv(data_dir / 'borderline_non-adversarial.csv') 
-    benign_prompts = pd.read_csv(data_dir / 'benign_non-adversarial.csv')
-    harmful_jailbreaks = pd.read_csv(data_dir / 'harmful_jailbreaks.csv')
-    borderline_jailbreaks = pd.read_csv(data_dir / 'borderline_jailbreaks.csv')
-    benign_jailbreaks = pd.read_csv(data_dir / 'benign_jailbreaks.csv')
-    evaluation_results = pd.read_csv(data_dir / 'safeguard_evaluation_results.csv')
+    # Load data
+    non_adversarial_df, adversarial_df = load_data()
     
     # Create columns for filters
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        dataset_type = st.radio(
-            "Dataset Type",
-            ["Harmful", "Borderline", "Benign"],
+        harm_level = st.radio(
+            "Harm Level",
+            ["harmful", "borderline", "benign"],
             horizontal=True
         )
     
@@ -66,168 +55,106 @@ def playground_ui():
             horizontal=True,
             help="Non-Adversarial: Direct prompts | Adversarial: Jailbreak attempts"
         )
-        
-    # Add warning for adversarial content with dataset links
+    
+    # Add warning for adversarial content
     if content_type == "Adversarial":
         st.warning("""
-            ⚠️ **Note**: The adversarial datasets contain thousands of entries. 
-            For readability, only a sample of 40 attempts is shown below.
-            
-            Complete datasets available on GitHub:
-            - [Benign Adversarial Dataset](https://github.com/brash6/BELLS_leaderboard_mock_up/blob/main/data/benign_jailbreaks.csv)
-            - [Borderline Adversarial Dataset](https://github.com/brash6/BELLS_leaderboard_mock_up/blob/main/data/borderline_jailbreaks.csv)
-            - [Harmful Adversarial Dataset](https://github.com/brash6/BELLS_leaderboard_mock_up/blob/main/data/harmful_jailbreaks.csv)
+            ⚠️ **Note**: These are examples of adversarial prompts that attempt to bypass safeguards.
+            They are shown for educational and research purposes only.
         """)
     
-    # Safeguard selection without arrows
+    # Safeguard selection
     with col3:
+        safeguards = ["All Safeguards", "lakera_guard", "prompt_guard", "langkit", "nemo", "llm_guard"]
         safeguard = st.selectbox(
             "Select Safeguard",
-            ["All Safeguards"] + evaluation_results['safeguard'].tolist(),
-            label_visibility="visible"
+            safeguards,
+            format_func=lambda x: x.replace("_", " ").title() if x != "All Safeguards" else x
         )
     
-    # Get appropriate dataset based on selection
-    datasets = {
-        'Harmful': {
-            'Non-Adversarial': harmful_prompts, 
-            'Adversarial': harmful_jailbreaks.sample(n=40)
-        },
-        'Borderline': {
-            'Non-Adversarial': borderline_prompts, 
-            'Adversarial': borderline_jailbreaks.sample(n=40)
-        },
-        'Benign': {
-            'Non-Adversarial': benign_prompts, 
-            'Adversarial': benign_jailbreaks.sample(n=40)
-        }
-    }
-    
-    current_dataset = datasets[dataset_type][content_type]
+    # Get current dataset based on selection
+    current_df = adversarial_df if content_type == "Adversarial" else non_adversarial_df
+    current_df = current_df[current_df['harm_level'] == harm_level.lower()]
     
     # Category filter
     with col4:
-        if 'Category' in current_dataset.columns:
-            categories = ['All'] + sorted(current_dataset['Category'].unique().tolist())
-            selected_category = st.selectbox("Category Filter", categories)
-            
-            if selected_category != 'All':
-                current_dataset = current_dataset[current_dataset['Category'] == selected_category]
+        categories = ['All'] + sorted(current_df['category'].unique().tolist())
+        selected_category = st.selectbox("Category Filter", categories)
+        
+        if selected_category != 'All':
+            current_df = current_df[current_df['category'] == selected_category]
     
-    # Add search functionality with example
+    # Add search functionality
     search_query = st.text_input(
         "🔍 Search prompts...", 
-        placeholder="e.g., 'generate code' or 'financial advice'",
-        help="Search through prompt goals and descriptions"
+        placeholder="e.g., 'hack' or 'scam'",
+        help="Search through questions and prompts"
     )
     
     # Filter based on search
     if search_query:
-        current_dataset = current_dataset[
-            current_dataset['Goal'].str.contains(search_query, case=False, na=False)
-        ]
-    
-    # Get detection probability based on dataset type and safeguard
-    def get_detection_probability(safeguard_name, dataset_type, content_type):
-        if content_type == 'Non-Adversarial':
-            column_name = f"{dataset_type.lower()}_non-adversarial"
+        if content_type == "Adversarial":
+            mask = (current_df['question'].str.contains(search_query, case=False, na=False) |
+                   current_df['jailbreak_prompt'].str.contains(search_query, case=False, na=False))
         else:
-            column_name = f"{dataset_type.lower()}_jailbreaks"
-        return evaluation_results[evaluation_results['safeguard'] == safeguard_name][column_name].iloc[0]
-    
-    # Simulate detection with actual probabilities
-    def get_detection_result(safeguard_name, dataset_type, content_type):
-        prob = get_detection_probability(safeguard_name, dataset_type, content_type)
-        return random.random() < prob
-    
-    # Display stats
-    total_count = len(current_dataset)
-    if safeguard == "All Safeguards":
-        detected_counts = {
-            name: sum([get_detection_result(name, dataset_type, content_type) for _ in range(total_count)])
-            for name in evaluation_results['safeguard']
-        }
-    else:
-        detected_count = sum([get_detection_result(safeguard, dataset_type, content_type) for _ in range(total_count)])
+            mask = current_df['question'].str.contains(search_query, case=False, na=False)
+        current_df = current_df[mask]
     
     st.markdown("---")
     
-    # Display statistics in metrics
+    # Display statistics
+    total_count = len(current_df)
+    
     if safeguard == "All Safeguards":
-        cols = st.columns(len(evaluation_results) + 1)
-        cols[0].metric(
-            label="Total Prompts",
-            value=total_count
-        )
-        for i, (name, count) in enumerate(detected_counts.items(), 1):
+        cols = st.columns(len(safeguards[1:]) + 1)
+        cols[0].metric("Total Prompts", total_count)
+        for i, sg in enumerate(safeguards[1:], 1):
+            detected = current_df[sg].sum()
             cols[i].metric(
-                label=f"{name}",
-                value=f"{(count/total_count*100):.1f}%",
-                help=f"{count}/{total_count}"
+                label=sg.replace("_", " ").title(),
+                value=f"{(detected/total_count*100):.1f}%",
+                help=f"{detected}/{total_count}"
             )
     else:
         col1, col2, col3 = st.columns(3)
-        col1.metric(
-            label="Total Prompts",
-            value=total_count
-        )
-        col2.metric(
-            label="Detected",
-            value=detected_count
-        )
-        col3.metric(
-            label="Detection Rate",
-            value=f"{(detected_count/total_count*100):.1f}%"
-        )
+        detected = current_df[safeguard].sum()
+        col1.metric("Total Prompts", total_count)
+        col2.metric("Detected", detected)
+        col3.metric("Detection Rate", f"{(detected/total_count*100):.1f}%")
     
     st.markdown("---")
     
-    # Display prompts/jailbreaks in a card-like format
-    for idx, row in current_dataset.iterrows():
-        # Get detection results for the prompt
-        if safeguard == "All Safeguards":
-            detection_results = {
-                name: get_detection_result(name, dataset_type, content_type)
-                for name in evaluation_results['safeguard']
-            }
-        else:
-            detected = get_detection_result(safeguard, dataset_type, content_type)
+    # Display prompts
+    for _, row in current_df.iterrows():
+        cols = st.columns([3, 1])
+        with cols[0]:
+            st.markdown(f"### {row['question']}")
         
-        # Header with detection status
-        if safeguard == "All Safeguards":
-            st.markdown(f"### {row['Goal']}")
-            cols = st.columns(len(evaluation_results))
-            for i, (name, result) in enumerate(detection_results.items()):
-                with cols[i]:
-                    if result:
-                        st.success(f"✅ {name}")
+        # Display detection results
+        with cols[1]:
+            if safeguard == "All Safeguards":
+                for sg in safeguards[1:]:
+                    if row[sg]:
+                        st.success(f"✅ {sg.replace('_', ' ').title()}")
                     else:
-                        st.error(f"❌ {name}")
-        else:
-            cols = st.columns([3, 1])
-            with cols[0]:
-                st.markdown(f"### {row['Goal']}")
-            with cols[1]:
-                if detected:
-                    st.success(f"✅ {safeguard}")
+                        st.error(f"❌ {sg.replace('_', ' ').title()}")
+            else:
+                if row[safeguard]:
+                    st.success(f"✅ {safeguard.replace('_', ' ').title()}")
                 else:
-                    st.error(f"❌ {safeguard}")
+                    st.error(f"❌ {safeguard.replace('_', ' ').title()}")
         
-        # Content display
-        if content_type == "Non-Adversarial" and 'Behavior' in row:
-            st.markdown("**Expected Behavior:**")
-            st.markdown(f"_{row['Behavior']}_")
-        elif content_type == "Adversarial":  # Changed this condition
+        # Display jailbreak prompt for adversarial content
+        if content_type == "Adversarial":
             st.markdown("**Jailbreak Attempt:**")
             with st.expander("Show jailbreak prompt"):
-                if 'Jailbreak' in row:
-                    st.markdown(f"_{row['Jailbreak']}_")
-                elif 'Attack' in row:  # Fallback for alternative column name
-                    st.markdown(f"_{row['Attack']}_")
+                st.markdown(f"_{row['jailbreak_prompt']}_")
+                st.markdown(f"**Type:** `{row['jailbreak_type']}`")
+                st.markdown(f"**Source:** `{row['jailbreak_source']}`")
         
-        # Footer with metadata
-        if 'Category' in row:
-            st.markdown(f"**Category:** `{row['Category']}`")
+        # Display metadata
+        st.markdown(f"**Category:** `{row['category']}`")
+        st.markdown(f"**Source:** `{row['source']}`")
         
         st.markdown("---")
 

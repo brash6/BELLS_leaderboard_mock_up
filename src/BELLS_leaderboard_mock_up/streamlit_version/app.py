@@ -178,7 +178,7 @@ def main():
         
         harm_columns = ['Harassment/Discrimination', 'Malware/Hacking', 'Physical_harm',
                        'Economic_harm', 'Fraud/Deception', 'Disinformation',
-                       'Sexual/Adult_content', 'Privacy']
+                       'Sexual/Adult_content', 'Privacy', 'Expert_advice', 'Government_decision_making', 'CBRN']
         
         harm_df = df.melt(id_vars=['safeguard'],
                           value_vars=harm_columns,
@@ -301,7 +301,7 @@ def main():
             harm_columns = ['safeguard', 'Harassment/Discrimination', 'Malware/Hacking', 
                             'Physical_harm', 'Economic_harm', 'Fraud/Deception', 
                             'Disinformation', 'Sexual/Adult_content', 'Privacy', 
-                            'Expert_advice', 'Government_decision_making']
+                            'Expert_advice', 'Government_decision_making', 'CBRN']
             st.dataframe(df[harm_columns], use_container_width=True)
             
         except KeyError as e:
