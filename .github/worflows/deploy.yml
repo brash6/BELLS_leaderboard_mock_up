@@ -28,3 +28,4 @@ jobs:
         with:
           branch: gh-pages
           folder: src/BELLS_leaderboard_mock_up/html_version/html_version  # Adjust output folder
+
