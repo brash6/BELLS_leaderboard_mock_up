@@ -74,25 +74,37 @@
     <!-- Main Content -->
     <div class="dashboard-container">
         <section id="leaderboard" class="section">
-            <!-- Rankings -->
+            <!-- Ranking Section -->
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <h3 class="card-title">
                                 <i class="fas fa-trophy"></i>
-                                Safeguard Rankings
+                                Overall Ranking
                             </h3>
                             <p class="plot-intro">
                                 A comprehensive comparison of safeguard performance across key metrics: Detection Rate for both adversarial and non-adversarial content, False Positive Rate, and the overall BELLS Score. The color-coding system helps quickly identify performance levels across different metrics.
                             </p>
                             <div id="rankingList"></div>
+                            <div class="interpretation-section">
+                                <button class="interpretation-toggle" onclick="toggleInterpretation('ranking-interpretation')">
+                                    <i class="fas fa-lightbulb"></i>View Interpretation
+                                </button>
+                                <div id="ranking-interpretation" class="interpretation-content">
+                                    <ul>
+                                        <li>LLM Guard leads overall with the highest BELLS Score, showing balanced performance across all metrics</li>
+                                        <li>Top performers maintain Detection Rates above 90% while keeping False Positives low</li>
+                                        <li>Notable trade-off between Detection Rate and False Positives among lower-ranked safeguards</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Heatmap -->
+            <!-- Heatmap Section -->
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -109,25 +121,48 @@
                                 <div class="heatmap-tooltip"></div>
                                 <div class="heatmap-legend"></div>
                             </div>
+                            <div class="interpretation-section">
+                                <button class="interpretation-toggle" onclick="toggleInterpretation('heatmap-interpretation')">
+                                    <i class="fas fa-lightbulb"></i>View Interpretation
+                                </button>
+                                <div id="heatmap-interpretation" class="interpretation-content">
+                                    <ul>
+                                        <li>Strong performance across most safeguards in detecting explicit harm categories</li>
+                                        <li>More variation in effectiveness for nuanced categories like disinformation</li>
+                                        <li>Some safeguards show specialization in specific harm types</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            
-            <!-- Jailbreak Detection Analysis -->
+            <!-- Jailbreak Analysis Section -->
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
                             <h3 class="card-title">
                                 <i class="fas fa-shield-alt"></i>
-                                Jailbreak Detection Analysis
+                                Jailbreak Type Analysis
                             </h3>
                             <p class="plot-intro">
                                 This visualization breaks down each safeguard's effectiveness against different types of jailbreak attempts. Click on individual bars to explore detailed performance breakdowns for specific jailbreak methods within each category.
                             </p>
                             <div id="jailbreakPlot"></div>
+                            <div class="interpretation-section">
+                                <button class="interpretation-toggle" onclick="toggleInterpretation('jailbreak-interpretation')">
+                                    <i class="fas fa-lightbulb"></i>View Interpretation
+                                </button>
+                                <div id="jailbreak-interpretation" class="interpretation-content">
+                                    <ul>
+                                        <li>Most safeguards show higher detection rates for sophisticated jailbreak attempts</li>
+                                        <li>Top performers maintain consistent detection rates across different jailbreak types</li>
+                                        <li>Some safeguards show specialized strength in detecting specific jailbreak patterns</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

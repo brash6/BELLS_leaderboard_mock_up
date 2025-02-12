@@ -1845,3 +1845,77 @@ body {
 .plot-intro br {
     margin-bottom: 0.5rem;
 }
+
+.interpretation-section {
+    margin: 1.5rem 0;
+    padding: 0 1.5rem;
+    width: 100%;
+}
+
+.interpretation-toggle {
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: #1e293b;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.interpretation-toggle:hover {
+    background: #f8fafc;
+    border-color: #cbd5e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.interpretation-toggle i {
+    color: #3b82f6;
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.interpretation-content {
+    display: none;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.interpretation-content.show {
+    display: block;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.interpretation-content ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.interpretation-content li {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -824,8 +824,31 @@ function createJailbreakComparison(data) {
     createTypeView();
 }
 
-// Initialize everything when the document is ready
+function toggleInterpretation(interpretationId) {
+    const content = document.getElementById(interpretationId);
+    const button = content.previousElementSibling;
+    
+    // Toggle the content visibility
+    content.classList.toggle('show');
+    
+    // Update button text and icon
+    if (content.classList.contains('show')) {
+        button.innerHTML = '<i class="fas fa-lightbulb"></i>Hide Interpretation';
+    } else {
+        button.innerHTML = '<i class="fas fa-lightbulb"></i>View Interpretation';
+    }
+}
+
+// Initialize interpretation sections on page load
 document.addEventListener('DOMContentLoaded', function() {
+    const interpretationContents = document.querySelectorAll('.interpretation-content');
+    interpretationContents.forEach(content => {
+        content.classList.remove('show');
+        const button = content.previousElementSibling;
+        button.innerHTML = '<i class="fas fa-lightbulb"></i>View Interpretation';
+    });
+    
+    // Rest of your existing initialization code...
     loadData().then(data => {
         if (data) {
             createRankingList(data);
