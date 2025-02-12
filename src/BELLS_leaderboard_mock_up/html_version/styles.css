@@ -344,65 +344,240 @@ body {
     min-width: 35px;
 }
 
+.ranking-header {
+    display: grid;
+    grid-template-columns: 80px 200px repeat(4, 1fr);
+    align-items: center;
+    padding: 1.5rem 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 .ranking-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 80px 200px repeat(4, 1fr);
     align-items: center;
     padding: 1.2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
 }
 
 .ranking-item:hover {
-    transform: translateX(10px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
 }
 
-.rank-number {
-    font-size: 1.5rem;
-    font-weight: bold;
-    min-width: 60px;
-    color: var(--primary-color);
+.metric-column {
     text-align: center;
-    padding: 0.5rem;
-    margin-right: 1rem;
-    background: rgba(44, 62, 80, 0.1);
+    position: relative;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+}
+
+.metric-subtext {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: normal;
+}
+
+.tooltip-icon {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-left: 0.5rem;
+    cursor: help;
+    transition: color 0.2s ease;
+}
+
+.tooltip-icon:hover {
+    color: #475569;
+}
+
+.tooltip-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 1.2rem;
+    background: #1e293b;
+    color: #f8fafc;
     border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.6;
+    white-space: normal;
+    width: max-content;
+    max-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.score {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.score-poor {
+    background: rgba(239, 68, 68, 0.1);
+    color: #991b1b;
+}
+
+.score-fair {
+    background: rgba(245, 158, 11, 0.1);
+    color: #92400e;
+}
+
+.score-good {
+    background: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+}
+
+.score-excellent {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1e40af;
+}
+
+.best-score {
+    border: 1px solid currentColor;
+    background: rgba(37, 99, 235, 0.15);
+}
+
+/* Score Legend Styles */
+.score-legend {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.legend-title {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.legend-scale {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #4a5568;
+}
+
+.legend-color {
+    width: 2rem;
+    height: 1rem;
+    border-radius: 4px;
+}
+
+.legend-color.poor {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #991b1b;
+}
+
+.legend-color.fair {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid #92400e;
+}
+
+.legend-color.good {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid #065f46;
+}
+
+.legend-color.excellent {
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid #1e40af;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .legend-scale {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+.rank-badge {
+    width: 36px;
+    height: 36px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
 }
 
 .safeguard-name {
-    flex-grow: 1;
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: #0567a5;
-    padding: 0 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    letter-spacing: 0.3px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.score-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+#rankingList {
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.score-label {
-    font-size: 0.8rem;
-    color: #666;
-    margin-bottom: 0.2rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+* {
+    scroll-behavior: smooth;
 }
 
-.bells-score {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    padding: 0.5rem 1rem;
-    background: rgba(52, 152, 219, 0.1);
-    border-radius: 8px;
-    min-width: 100px;
-    text-align: center;
+.ranking-header {
+    margin-top: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+@media (max-width: 1200px) {
+    .ranking-header, .ranking-item {
+        grid-template-columns: 60px 180px repeat(4, 1fr);
+        font-size: 0.9rem;
+    }
+    
+    .score {
+        font-size: 1rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .tooltip-icon:hover::after {
+        font-size: 0.85rem;
+        max-width: 250px;
+    }
 }
 
 .footer {
@@ -1387,4 +1562,64 @@ body {
 /* Add spacing between sections */
 .card {
     margin-bottom: 2rem;
+}
+
+#jailbreakPlot {
+    width: 100%;
+    max-width: 1200px;
+    height: 600px;  /* Explicit height */
+    margin: 20px auto;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: block;  /* Ensure block display */
+}
+
+#jailbreakPlot svg {
+    width: 100%;
+    height: 100%;
+    display: block;  /* Ensure block display */
+}
+
+.scores-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.score-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+}
+
+.score-label {
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.score-value {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.bells-score {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.ranking-item {
+    display: grid;
+    grid-template-columns: 60px 200px repeat(4, 1fr);
+    align-items: center;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
