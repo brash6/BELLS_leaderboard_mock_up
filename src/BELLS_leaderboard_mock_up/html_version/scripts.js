@@ -576,4 +576,18 @@ function displayRecommendation(recommendation) {
             </div>
         </div>
     `;
+}
+
+function toggleAnalysis(analysisId) {
+    const content = document.getElementById(analysisId);
+    content.classList.toggle('show');
+    
+    const button = content.previousElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (content.classList.contains('show')) {
+        button.innerHTML = `<i class="fas fa-chart-line"></i> Hide Analysis`;
+    } else {
+        button.innerHTML = `<i class="fas fa-chart-line"></i> View Analysis`;
+    }
 } 

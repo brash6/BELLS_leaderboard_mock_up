@@ -29,9 +29,9 @@ body {
 }
 
 .dashboard-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 2rem;
 }
 
 .section {
@@ -1420,76 +1420,142 @@ body {
 }
 
 .custom-heatmap-container {
+    position: relative;
+    overflow-x: auto;
+    padding: 1rem;
+    margin-bottom: 0;
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-#customHeatmap svg {
-    width: 100%;
-    height: auto;
-}
-
-.axis-label {
-    font-size: 12px;
-    font-family: 'Inter', sans-serif;
-    fill: #4a5568;
-}
-
-.cell-value {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-}
-
-.heatmap-tooltip {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #2d3748;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.heatmap-tooltip strong {
-    color: #2c5282;
-    display: block;
-    margin-bottom: 4px;
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: 120px repeat(11, 100px); /* Fixed widths for more consistent layout */
+    gap: 4px; /* Reduced gap */
+    align-items: center;
+    padding-top: 60px;
+    margin-bottom: 1rem;
+    min-width: min-content; /* Ensures grid doesn't shrink below content size */
 }
 
 .heatmap-cell {
-    transition: all 0.2s ease;
-    cursor: pointer;
-    opacity: 0.9;
+    padding: 8px 4px;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    height: 40px; /* Fixed height for cells */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.axis-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
+.heatmap-row-label {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.95rem;
+    text-align: left;
+    padding: 8px 12px;
+    height: 40px; /* Match cell height */
+    display: flex;
+    align-items: center;
+}
+
+.heatmap-col-label {
     font-weight: 500;
-    fill: #2d3748;
+    color: #475569;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 0 4px 8px 4px;
+    white-space: normal;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+.heatmap-tooltip {
+    position: fixed;
+    background: white;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    color: #1e293b;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 300px;
+    border: 1px solid #e2e8f0;
+    display: none;
+    white-space: nowrap;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.tooltip-content {
+    line-height: 1.6;
 }
 
 .heatmap-legend {
-    font-family: 'Inter', sans-serif;
+    margin-top: 0;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    border-top: 1px solid #e2e8f0;
 }
 
-.heatmap-legend .tick text {
-    fill: #4a5568;
-    font-size: 12px;
-    font-weight: 500;
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #475569;
 }
 
-.heatmap-legend .domain,
-.heatmap-legend .tick line {
-    stroke: #cbd5e0;
-    stroke-width: 1.5px;
+.legend-color {
+    width: 1.5rem;
+    height: 1rem;
+    border-radius: 4px;
 }
 
-.legend-axis .tick text {
-    transform: translateX(5px);  
+/* Score colors - matching the ranking section */
+.score-excellent {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.score-good {
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.score-fair {
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.score-poor {
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1440px) {
+    .dashboard-container {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .heatmap-legend {
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: flex-start;
+    }
 }
 
 #fprPlot {
@@ -1561,7 +1627,17 @@ body {
 
 /* Add spacing between sections */
 .card {
+    width: 100%;
     margin-bottom: 2rem;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden; /* Prevent content from spilling */
+}
+
+.card-body {
+    padding: 2rem;
+    overflow-x: auto; /* Allow horizontal scroll if needed */
 }
 
 #jailbreakPlot {
@@ -1622,4 +1698,150 @@ body {
     background: white;
     border-radius: 12px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.legend-note {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.plot-intro {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.metrics-link-container {
+    max-width: 900px;
+    margin: -1.5rem auto 2rem;
+    padding: 0 1rem;
+}
+
+.metrics-link-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metrics-link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+.metrics-icon {
+    font-size: 2rem;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.metrics-text {
+    flex-grow: 1;
+}
+
+.metrics-text h4 {
+    color: #1e293b;
+    margin: 0 0 0.3rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.metrics-text p {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.95rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.metrics-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #3b82f6;
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.metrics-button:hover {
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+}
+
+.metrics-button i {
+    transition: transform 0.2s ease;
+}
+
+.metrics-button:hover i {
+    transform: translateX(4px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .metrics-link-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.2rem;
+    }
+
+    .metrics-text {
+        margin-bottom: 0.5rem;
+    }
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.card-title i {
+    color: #3b82f6;
+    font-size: 1.25rem;
+}
+
+.plot-intro {
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 1rem;
+    background: #f8fafc;
+    border-left: 4px solid #3b82f6;
+    border-radius: 0 8px 8px 0;
+}
+
+.plot-intro strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.plot-intro br {
+    margin-bottom: 0.5rem;
 }

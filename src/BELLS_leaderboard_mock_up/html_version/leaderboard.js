@@ -1,3 +1,34 @@
+// Add this at the top of the file
+function toggleAnalysis(event) {
+    event.preventDefault();
+    const button = event.currentTarget;
+    const analysisId = button.getAttribute('data-analysis');
+    const analysisContent = document.querySelector(`[data-analysis-content="${analysisId}"]`);
+    
+    if (!analysisContent) {
+        console.error(`Analysis content not found for id: ${analysisId}`);
+        return;
+    }
+
+    // Toggle visibility directly with display property
+    const isVisible = analysisContent.style.display !== 'none';
+    analysisContent.style.display = isVisible ? 'none' : 'block';
+
+    // Remove existing icon if present
+    const existingIcon = button.querySelector('i');
+    if (existingIcon) {
+        existingIcon.remove();
+    }
+
+    // Create new icon
+    const icon = document.createElement('i');
+    icon.className = isVisible ? 'fas fa-chart-line' : 'fas fa-chevron-up';
+    
+    // Update button text
+    button.textContent = isVisible ? ' View Analysis' : ' Hide Analysis';
+    button.insertBefore(icon, button.firstChild);
+}
+
 // Data loading function
 async function loadData() {
     console.log("Starting data loading...");
@@ -187,6 +218,9 @@ function createRankingList(data) {
                 <span>Excellent (0.9 - 1.0)</span>
             </div>
         </div>
+        <div class="legend-note">
+            * For FPR, scale is inverted (lower is better)
+        </div>
     `;
     rankingContainer.appendChild(legendDiv);
 
@@ -259,205 +293,134 @@ function getScoreClass(value) {
     return 'score-poor';
 }
 
-function createCustomHeatmap(data) {
-    // Configuration
-    const margin = { top: 50, right: 200, bottom: 140, left: 150 };  // Increased right margin further
-    const width = 1200 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+function createHeatmap(data) {
+    const container = document.getElementById('customHeatmap');
+    if (!container || !data) {
+        console.error('Container or data not found for heatmap');
+        return;
+    }
 
-    // Clear existing content
-    d3.select("#customHeatmap").html("");
-
-    // Categories with better labels
+    // Create grid container
+    const grid = document.createElement('div');
+    grid.className = 'heatmap-grid';
+    
+    // Add empty cell for top-left corner
+    const cornerCell = document.createElement('div');
+    grid.appendChild(cornerCell);
+    
+    // Add column headers
     const categories = [
-        'Physical_harm', 'Economic_harm', 'Privacy', 'Harassment/Discrimination',
-        'Disinformation', 'Expert_advice', 'Sexual/Adult_content', 'Malware/Hacking',
-        'Fraud/Deception', 'Government_decision_making', 'CBRN'
+        'Harassment/Discrimination',
+        'Malware/Hacking',
+        'Physical_harm',
+        'Economic_harm',
+        'Fraud/Deception',
+        'Disinformation',
+        'Sexual/Adult_content',
+        'Privacy',
+        'Expert_advice',
+        'Government_decision_making',
+        'CBRN'
     ];
 
-    // Format category labels
-    const formatCategoryLabel = (cat) => {
-        return cat.split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
-    };
-
-    // Create SVG with responsive container
-    const svg = d3.select("#customHeatmap")
-        .append("svg")
-        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-        .attr("preserveAspectRatio", "xMidYMid meet")
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Scales
-    const x = d3.scaleBand()
-        .range([0, width])
-        .domain(categories)
-        .padding(0.05);
-
-    const y = d3.scaleBand()
-        .range([height, 0])
-        .domain(data.map(d => d.safeguard))
-        .padding(0.05);
-
-    // Custom color scale
-    const colorScale = d3.scaleSequential()
-        .interpolator(d3.interpolateRdBu)
-        .domain([0.2, 0.8]);
-
-    // Create cells
-    const cells = svg.selectAll("rect")
-        .data(data.flatMap(d => 
-            categories.map(cat => ({
-                safeguard: d.safeguard,
-                category: cat,
-                value: parseFloat(d[cat])
-            }))
-        ))
-        .enter()
-        .append("rect")
-        .attr("x", d => x(d.category))
-        .attr("y", d => y(d.safeguard))
-        .attr("width", x.bandwidth())
-        .attr("height", y.bandwidth())
-        .attr("class", "heatmap-cell")
-        .style("fill", d => colorScale(d.value))
-        .attr("rx", 2)
-        .attr("ry", 2);
-
-    // Add cell values
-    svg.selectAll("text.cell-value")
-        .data(data.flatMap(d => 
-            categories.map(cat => ({
-                safeguard: d.safeguard,
-                category: cat,
-                value: parseFloat(d[cat])
-            }))
-        ))
-        .enter()
-        .append("text")
-        .attr("class", "cell-value")
-        .attr("x", d => x(d.category) + x.bandwidth() / 2)
-        .attr("y", d => y(d.safeguard) + y.bandwidth() / 2)
-        .attr("text-anchor", "middle")
-        .attr("dominant-baseline", "middle")
-        .style("font-size", "11px")
-        .style("fill", d => d.value > 0.5 ? "#000" : "#fff")
-        .text(d => (d.value * 100).toFixed(0) + "%");
-
-    // Add axes with formatted labels
-    svg.append("g")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x))
-        .selectAll("text")
-        .attr("class", "axis-label")
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", "1em")
-        .attr("transform", "rotate(-45)")
-        .text(d => formatCategoryLabel(d));
-
-    svg.append("g")
-        .call(d3.axisLeft(y))
-        .selectAll("text")
-        .attr("class", "axis-label");
-
-    // After creating the axes, add axis labels
-    // X-axis label
-    svg.append("text")
-        .attr("class", "axis-title")
-        .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", height + margin.bottom - 20)  // Position below the x-axis labels
-        .text("Harm Categories");
-
-    // Y-axis label
-    svg.append("text")
-        .attr("class", "axis-title")
-        .attr("text-anchor", "middle")
-        .attr("transform", "rotate(-90)")  // Rotate for vertical text
-        .attr("x", -height / 2)
-        .attr("y", -margin.left + 50)  // Position to the left of the y-axis
-        .text("Safeguards");
-
-    // Add tooltip behavior
-    const tooltip = d3.select(".heatmap-tooltip");
-    
-    cells.on("mouseover", function(event, d) {
-        d3.select(this)
-            .style("stroke", "#2c3e50")
-            .style("stroke-width", "2");
-
-        tooltip.style("opacity", 1)
-            .html(`
-                <strong>${d.safeguard}</strong><br/>
-                ${formatCategoryLabel(d.category)}<br/>
-                Score: ${(d.value * 100).toFixed(1)}%
-            `)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 28) + "px");
-    })
-    .on("mouseout", function() {
-        d3.select(this)
-            .style("stroke", "none");
-        tooltip.style("opacity", 0);
+    categories.forEach(category => {
+        const header = document.createElement('div');
+        header.className = 'heatmap-col-label';
+        // Special handling for Harassment/Discrimination
+        if (category === 'Harassment/Discrimination') {
+            header.innerHTML = 'Harassment/<br>Discrimination';
+        } else {
+            header.textContent = category.replace(/_/g, ' ');
+        }
+        grid.appendChild(header);
     });
 
+    // Add data rows
+    data.forEach(item => {
+        // Add row label
+        const rowLabel = document.createElement('div');
+        rowLabel.className = 'heatmap-row-label';
+        rowLabel.textContent = item.safeguard;
+        grid.appendChild(rowLabel);
+
+        // Add score cells
+        categories.forEach(category => {
+            const score = parseFloat(item[category]) || 0;
+            const cell = document.createElement('div');
+            cell.className = `heatmap-cell ${getScoreClass(score)}`;
+            cell.textContent = score.toFixed(3);
+            
+            // Add hover tooltip
+            cell.addEventListener('mouseover', (e) => {
+                showTooltip(e, item.safeguard, category, score);
+            });
+            cell.addEventListener('mouseout', hideTooltip);
+            
+            grid.appendChild(cell);
+        });
+    });
+
+    container.appendChild(grid);
+
     // Add legend
-    const legendWidth = 40;
-    const legendHeight = height;
+    addLegend(container);
+}
+
+function showTooltip(event, safeguard, category, score) {
+    const tooltipContainer = document.querySelector('.heatmap-tooltip');
+    if (!tooltipContainer) {
+        console.error('Tooltip container not found');
+        return;
+    }
     
-    const legendScale = d3.scaleLinear()
-        .domain([0, 100])  // Changed domain to 0-100 for percentages
-        .range([legendHeight, 0]);
+    tooltipContainer.innerHTML = `
+        <div class="tooltip-content">
+            <strong>${safeguard}</strong><br>
+            Category: ${category.replace(/_/g, ' ')}<br>
+            Score: ${score.toFixed(3)}
+        </div>
+    `;
+    
+    // Position tooltip relative to viewport
+    const rect = event.target.getBoundingClientRect();
+    const tooltipX = rect.left + (rect.width / 2);
+    const tooltipY = rect.top;
+    
+    tooltipContainer.style.left = `${tooltipX}px`;
+    tooltipContainer.style.top = `${tooltipY - 10}px`;
+    tooltipContainer.style.transform = 'translate(-50%, -100%)';
+    tooltipContainer.style.display = 'block';
+}
 
-    const legendAxis = d3.axisRight(legendScale)
-        .tickSize(6)
-        .ticks(6)  // Reduced number of ticks to prevent overlap
-        .tickFormat(d => d + "%");
+function hideTooltip() {
+    const tooltipContainer = document.querySelector('.heatmap-tooltip');
+    if (tooltipContainer) {
+        tooltipContainer.style.display = 'none';
+    }
+}
 
-    const legend = svg.append("g")
-        .attr("class", "heatmap-legend")
-        .attr("transform", `translate(${width + 100},0)`);  // Increased spacing from heatmap
-
-    const defs = legend.append("defs");
-    const gradient = defs.append("linearGradient")
-        .attr("id", "legend-gradient")
-        .attr("x1", "0%")
-        .attr("x2", "0%")
-        .attr("y1", "100%")  // Start from bottom
-        .attr("y2", "0%");   // End at top
-
-    gradient.selectAll("stop")
-        .data([
-            { offset: "0%", color: colorScale(0) },    // Red at bottom
-            { offset: "50%", color: colorScale(0.5) }, // White in middle
-            { offset: "100%", color: colorScale(1) }   // Blue at top
-        ])
-        .enter()
-        .append("stop")
-        .attr("offset", d => d.offset)
-        .attr("stop-color", d => d.color);
-
-    legend.append("rect")
-        .attr("width", legendWidth)
-        .attr("height", legendHeight)
-        .style("fill", "url(#legend-gradient)")
-        .style("stroke", "#e2e8f0")
-        .style("stroke-width", "1px");
-
-    legend.append("g")
-        .attr("transform", `translate(${legendWidth},0)`)
-        .attr("class", "legend-axis")
-        .call(legendAxis);
-
-    // Legend label
-    legend.append("text")
-        .attr("class", "axis-title")
-        .attr("text-anchor", "middle")
-        .attr("transform", `rotate(-90) translate(${-legendHeight/2}, ${-legendWidth +5})`)  // Adjusted rotation and position
-        .text("Detection Rate");
+function addLegend(container) {
+    const legend = document.createElement('div');
+    legend.className = 'heatmap-legend';
+    legend.innerHTML = `
+        <div class="legend-item">
+            <div class="legend-color score-excellent"></div>
+            <span>Excellent (≥0.9)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color score-good"></div>
+            <span>Good (0.7-0.9)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color score-fair"></div>
+            <span>Fair (0.5-0.7)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color score-poor"></div>
+            <span>Poor (<0.5)</span>
+        </div>
+    `;
+    container.appendChild(legend);
 }
 
 function createFPRComparison(data) {
@@ -862,32 +825,17 @@ function createJailbreakComparison(data) {
 }
 
 // Initialize everything when the document is ready
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log("DOM Content Loaded");
-    try {
-        const data = await loadData();
-        console.log("Data loaded successfully:", data.length, "rows");
+document.addEventListener('DOMContentLoaded', function() {
+    loadData().then(data => {
         if (data) {
-            console.log("Creating visualizations...");
             createRankingList(data);
-            createCustomHeatmap(data);
+            createHeatmap(data);
             createFPRComparison(data);
-            console.log("About to create jailbreak comparison...");
             createJailbreakComparison(data);
-            console.log("All visualizations created");
         }
-    } catch (error) {
-        console.error('Initialization error:', error);
-        const dashboardContainer = document.querySelector('.dashboard-container');
-        if (dashboardContainer) {
-            dashboardContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    <h4>Initialization Error</h4>
-                    <p>${error.message}</p>
-                </div>
-            `;
-        }
-    }
+    }).catch(error => {
+        console.error('Error loading data:', error);
+    });
 });
 
 // Also check if the div exists in the HTML

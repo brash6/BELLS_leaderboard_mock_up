@@ -56,6 +56,21 @@
         </div>
     </div>
 
+    <!-- Metrics Link Section -->
+    <div class="metrics-link-container">
+        <div class="metrics-link-card">
+            <i class="fas fa-chart-bar metrics-icon"></i>
+            <div class="metrics-text">
+                <h4>New to our metrics?</h4>
+                <p>Learn more about how we evaluate and score safeguards</p>
+            </div>
+            <a href="metrics.html" class="metrics-button">
+                View Metrics Description
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <div class="dashboard-container">
         <section id="leaderboard" class="section">
@@ -64,7 +79,13 @@
                 <div class="col-12 mb-4">
                     <div class="card">
                         <div class="card-body">
-                            <h3 class="card-title">Safeguard Rankings</h3>
+                            <h3 class="card-title">
+                                <i class="fas fa-trophy"></i>
+                                Safeguard Rankings
+                            </h3>
+                            <p class="plot-intro">
+                                A comprehensive comparison of safeguard performance across key metrics: Detection Rate for both adversarial and non-adversarial content, False Positive Rate, and the overall BELLS Score. The color-coding system helps quickly identify performance levels across different metrics.
+                            </p>
                             <div id="rankingList"></div>
                         </div>
                     </div>
@@ -76,7 +97,13 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <h3 class="card-title">Performance by Category</h3>
+                            <h3 class="card-title">
+                                <i class="fas fa-th"></i>
+                                Performance by Category
+                            </h3>
+                            <p class="plot-intro">
+                                Detailed breakdown of safeguard effectiveness across different harm categories, based on <strong>non-adversarial harmful prompts only</strong>. The heatmap visualization highlights strengths and specializations of each solution, making it easy to identify which safeguards excel in specific areas of protection. Note that this evaluation focuses on straightforward harmful content without sophisticated evasion techniques.
+                            </p>
                             <div class="custom-heatmap-container">
                                 <div id="customHeatmap"></div>
                                 <div class="heatmap-tooltip"></div>
@@ -87,21 +114,21 @@
                 </div>
             </div>
 
-            <!-- Add this section title and spacing before the FPR plot -->
-            <div style="margin-top: 40px;">  <!-- Added spacing -->
-                <h2 class="section-title">False Positive Rate Analysis</h2>  <!-- Same style as other section titles -->
-                <div class="card">
-                    <div class="card-body">
-                        <div id="fprPlot"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-top: 40px;">
-                <h2 class="section-title">Jailbreak Detection Analysis</h2>
-                <div class="card">
-                    <div class="card-body">
-                        <div id="jailbreakPlot"></div>
+            
+            <!-- Jailbreak Detection Analysis -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title">
+                                <i class="fas fa-shield-alt"></i>
+                                Jailbreak Detection Analysis
+                            </h3>
+                            <p class="plot-intro">
+                                This visualization breaks down each safeguard's effectiveness against different types of jailbreak attempts. Click on individual bars to explore detailed performance breakdowns for specific jailbreak methods within each category.
+                            </p>
+                            <div id="jailbreakPlot"></div>
+                        </div>
                     </div>
                 </div>
             </div>
