@@ -148,7 +148,7 @@
                                 Jailbreak Type Analysis
                             </h3>
                             <p class="plot-intro">
-                                This visualization breaks down each safeguard's effectiveness against different types of jailbreak attempts. Click on individual bars to explore detailed performance breakdowns for specific jailbreak methods within each category.
+                                This visualization breaks down each safeguard's effectiveness against different types of jailbreak attempts. 
                             </p>
                             <div id="jailbreakPlot"></div>
                             <div class="interpretation-section">
@@ -160,6 +160,64 @@
                                         <li>Most safeguards show higher detection rates for sophisticated jailbreak attempts</li>
                                         <li>Top performers maintain consistent detection rates across different jailbreak types</li>
                                         <li>Some safeguards show specialized strength in detecting specific jailbreak patterns</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensitivity Analysis Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title">
+                                <i class="fas fa-microscope"></i>
+                                Sensitivity Analysis
+                            </h3>
+                            <p class="plot-intro">
+                                This analysis demonstrates how safeguards differentiate between content of varying severity levels, both in standard and adversarial scenarios. A robust safeguard should show increasing detection rates from benign to harmful content, indicating proper calibration to content severity.
+                            </p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="plot-section">
+                                        <h4 class="plot-subtitle">
+                                            <i class="fas fa-chart-bar"></i>
+                                            Standard Content Sensitivity
+                                        </h4>
+                                        <p class="plot-description">
+                                            Shows how safeguards respond to non-adversarial content across three severity levels. Ideal performance shows low detection rates for benign content and progressively higher rates for borderline and harmful content, indicating proper calibration to content severity.
+                                        </p>
+                                        <div id="harmfulnessSensitivityPlot"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="plot-section">
+                                        <h4 class="plot-subtitle">
+                                            <i class="fas fa-shield-alt"></i>
+                                            Adversarial Content Sensitivity
+                                        </h4>
+                                        <p class="plot-description">
+                                            Demonstrates safeguard effectiveness against jailbreak attempts of varying severity. High detection rates across all categories indicate strong resistance to adversarial manipulation, while maintaining appropriate sensitivity to content severity.
+                                        </p>
+                                        <div id="adversarialSensitivityPlot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="interpretation-section">
+                                <button class="interpretation-toggle" onclick="toggleInterpretation('sensitivity-interpretation')">
+                                    <i class="fas fa-lightbulb"></i>View Interpretation
+                                </button>
+                                <div id="sensitivity-interpretation" class="interpretation-content">
+                                    <ul>
+                                        <li>Ideal safeguards show increasing detection rates from benign to harmful content, demonstrating proper calibration to content severity</li>
+                                        <li>Higher sensitivity to adversarial content indicates better resistance to jailbreak attempts</li>
+                                        <li>The gap between standard and adversarial detection rates reveals robustness against evasion attempts</li>
+                                        <li>Consistent performance across both plots suggests reliable content moderation capabilities</li>
                                     </ul>
                                 </div>
                             </div>
@@ -189,6 +247,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="leaderboard.js"></script>
 </body>
 </html> 

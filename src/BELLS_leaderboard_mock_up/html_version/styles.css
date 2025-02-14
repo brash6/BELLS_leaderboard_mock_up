@@ -735,7 +735,7 @@ body {
 }
 
 .feature-card:nth-child(2) .feature-icon {
-    background: #EBF8FF;
+    background: #ffffff;
 }
 
 .feature-card:nth-child(2) .feature-icon i {
@@ -743,7 +743,7 @@ body {
 }
 
 .feature-card:nth-child(3) .feature-icon {
-    background: #FEF5FF;
+    background: #ffffff;
 }
 
 .feature-card:nth-child(3) .feature-icon i {
@@ -758,9 +758,16 @@ body {
 }
 
 .metrics-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
+    max-width: 90%;
+    margin: 2rem auto;
+    padding: 0 20px;
+}
+
+/* For very large screens, set a reasonable maximum width */
+@media (min-width: 1600px) {
+    .metrics-container {
+        max-width: 1500px;
+    }
 }
 
 .metrics-card {
@@ -1685,8 +1692,9 @@ body {
 
 .bells-score {
     font-size: 1.2em;
-    font-weight: 700;
-    color: #2c3e50;
+    font-weight: 600;
+    color: #1e40af;  /* Darker blue for emphasis */
+    background-color: #f0f7ff;  /* Very light blue background */
 }
 
 .ranking-item {
@@ -1919,3 +1927,167 @@ body {
         transform: translateY(0);
     }
 }
+
+/* Add these styles for the sensitivity analysis section */
+.plot-section {
+    margin-bottom: 2rem;
+}
+
+.plot-subtitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+}
+
+.plot-subtitle i {
+    margin-right: 0.5rem;
+    color: #3b82f6;
+}
+
+.plot-description {
+    font-size: 0.95rem;
+    color: #475569;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+/* Enhance the plot containers */
+#harmfulnessSensitivityPlot,
+#adversarialSensitivityPlot {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.syntactic-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+.syntactic-table th,
+.syntactic-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.syntactic-table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.syntactic-table tr:last-child td {
+    border-bottom: none;
+}
+
+.syntactic-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin: 16px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.back-button:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+.back-button:active {
+    background-color: #e2e8f0;
+    transform: translateY(1px);
+}
+
+.back-button::before {
+    margin-right: 8px;
+}
+
+.dimensions-explanation {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-top: 1.5rem;
+}
+
+.dimension-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    max-width: 100%;
+}
+
+.dimension-card h4 {
+    color: #1e40af;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dimension-card ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 1rem;
+}
+
+.dimension-card li {
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.dimension-card li::before {
+    content: "•";
+    color: #3b82f6;
+    position: absolute;
+    left: 0;
+}
+
+.dimension-card strong {
+    color: #1e40af;
+}
+
+.borderline-examples {
+    background: #fff7ed;
+    border-color: #fdba74;
+}
+
+.borderline-examples h4 {
+    color: #c2410c;
+}
+
+.borderline-examples ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.borderline-examples li::before {
+    color: #f97316;
+}
+

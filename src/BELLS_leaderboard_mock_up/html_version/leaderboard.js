@@ -526,298 +526,290 @@ function createFPRComparison(data) {
 }
 
 function createJailbreakComparison(data) {
-    const margin = { top: 60, right: 150, bottom: 100, left: 150 };
-    const width = 1000 - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
+    // Initialize view state
+    let currentView = 'type';
+    let currentType = null;
 
-    // Define source mappings for drill-down
-    const sourceMapping = {
-        'Generative': ['jailbreak_source_PAIR'],
-        'Narrative': ['jailbreak_source_deep_inception', 'jailbreak_source_deck_of_many_prompts', 'jailbreak_source_huggingface'],
-        'Syntactic': [
-            'jailbreak_source_base64', 'jailbreak_source_disemvowel', 'jailbreak_source_rot13',
-            'jailbreak_source_binary', 'jailbreak_source_hex', 'jailbreak_source_ascii',
-            'jailbreak_source_leet', 'jailbreak_source_url_encoded', 'jailbreak_source_uppercase',
-            'jailbreak_source_reverse'
-        ]
+    // Mapping of jailbreak types to their sources
+    const typeToSourceMapping = {
+        'generative': ['PAIR'],
+        'narrative': ['huggingface', 'deck_of_many_prompts', 'deep_inception'],
+        'syntactic': ['base64', 'rot13', 'binary', 'hex', 'ascii', 'leet', 'url_encoded', 'uppercase', 'reverse', 'disemvowel']
+    };
+
+    // Professional color palette using corporate-friendly colors
+    const colors = {
+        'Generative': '#1e40af',   // Dark blue
+        'Narrative': '#2563eb',    // Medium blue  
+        'Syntactic': '#3b82f6'     // Light blue
+    };
+
+    // Updated source colors for a more professional palette
+    const sourceColors = {
+        // Generative sources - Blues
+        'PAIR': '#1e40af',
+        'deck_of_many_prompts': '#2563eb',
+        'deep_inception': '#3b82f6',
+        
+        // Narrative sources - Grays
+        'huggingface': '#334155',
+        'url_encoded': '#475569',
+        'uppercase': '#64748b',
+        'reverse': '#94a3b8',
+        'disemvowel': '#cbd5e1',
+        
+        // Syntactic sources - Cool grays (for table)
+        'base64': '#1f2937',
+        'rot13': '#374151',
+        'binary': '#4b5563',
+        'hex': '#6b7280',
+        'ascii': '#9ca3af',
+        'leet': '#d1d5db'
+    };
+
+    // Common layout settings
+    const commonLayout = {
+        barmode: 'group',
+        bargap: 0.15,
+        bargroupgap: 0.1,
+        xaxis: {
+            tickfont: { size: 12 }
+        },
+        yaxis: {
+            title: 'Detection Rate',
+            range: [0, 1],
+            tickformat: ',.0%',
+            gridcolor: '#e2e8f0',
+            gridwidth: 1
+        },
+        legend: {
+            orientation: 'h',
+            y: -0.3,
+            xanchor: 'center',
+            x: 0.5,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            bordercolor: '#e2e8f0',
+            borderwidth: 1
+        },
+        margin: { l: 60, r: 20, t: 40, b: 80 },
+        height: 500,
+        showlegend: true,
+        hovermode: 'closest',
+        hoverlabel: { 
+            bgcolor: '#1e293b',
+            bordercolor: '#475569',
+            font: { 
+                size: 13,
+                color: 'white'
+            }
+        },
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white'
     };
 
     function createTypeView() {
-        const processedData = data.map(d => ({
-            safeguard: d.safeguard,
-            types: [
-                { type: 'Generative', value: Math.min(100, parseFloat(d.jailbreak_type_generative || 0) * 100) },
-                { type: 'Narrative', value: Math.min(100, parseFloat(d.jailbreak_type_narrative || 0) * 100) },
-                { type: 'Syntactic', value: Math.min(100, parseFloat(d.jailbreak_type_syntactic || 0) * 100) }
-            ]
+        currentView = 'type';
+        currentType = null;
+
+        // Remove any existing back button and table
+        const existingButton = document.querySelector('.back-button');
+        if (existingButton) existingButton.remove();
+        
+        const existingTable = document.querySelector('.syntactic-table');
+        if (existingTable) existingTable.remove();
+
+        // Clear the plot div and ensure it's visible
+        const plotDiv = document.getElementById('jailbreakPlot');
+        plotDiv.style.display = 'block';
+        plotDiv.innerHTML = '';
+
+        const typeData = {
+            'Generative': data.map(d => parseFloat(d.jailbreak_type_generative)),
+            'Narrative': data.map(d => parseFloat(d.jailbreak_type_narrative)),
+            'Syntactic': data.map(d => parseFloat(d.jailbreak_type_syntactic))
+        };
+
+        const traces = Object.entries(typeData).map(([type, values]) => ({
+            name: type,
+            x: data.map(d => d.safeguard),
+            y: values,
+            type: 'bar',
+            marker: { 
+                color: colors[type],
+                line: { 
+                    color: colors[type].replace('0.85', '1'), 
+                    width: 1 
+                },
+                shape: 'rounded',
+                radius: 4
+            },
+            hovertemplate: `<b>%{x}</b><br>${type}: %{y:.1%}<extra></extra>`
         }));
-        createVisualization(processedData, 'type');
+
+        const layout = {
+            ...commonLayout,
+            title: 'Click on a jailbreak type in the legend to see source breakdown',
+            xaxis: {
+                ...commonLayout.xaxis,
+                title: 'Safeguards'
+            }
+        };
+
+        Plotly.newPlot('jailbreakPlot', traces, layout, {
+            responsive: true,
+            displayModeBar: false
+        });
+
+        const plot = document.getElementById('jailbreakPlot');
+        plot.on('plotly_legendclick', function(data) {
+            const type = data.data[data.curveNumber].name.toLowerCase();
+            if (type === 'syntactic') {
+                createSyntacticTable(type);
+            } else {
+                createSourceView(type);
+            }
+            return false;
+        });
     }
 
-    function createSourceView(selectedType) {
-        if (selectedType === 'Syntactic') {
-            createSyntacticTable(data, sourceMapping.Syntactic);
-            return;
+    function createSourceView(type) {
+        currentView = 'source';
+        currentType = type;
+
+        const relevantSources = typeToSourceMapping[type];
+        
+        const traces = relevantSources.map(source => {
+            const displayName = source.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+            
+            return {
+                name: displayName,
+                x: data.map(d => d.safeguard),
+                y: data.map(d => parseFloat(d[`jailbreak_source_${source}`])),
+                type: 'bar',
+                marker: { 
+                    color: sourceColors[source],
+                    line: { 
+                        color: sourceColors[source],
+                        width: 1 
+                    },
+                    shape: 'rounded',
+                    radius: 4
+                },
+                hovertemplate: `<b>%{x}</b><br>${displayName}: %{y:.1%}<extra></extra>`
+            };
+        });
+
+        const layout = {
+            ...commonLayout,
+            title: `${type.charAt(0).toUpperCase() + type.slice(1)} Jailbreak Sources`,
+            xaxis: {
+                ...commonLayout.xaxis,
+                title: 'Safeguards',
+                tickangle: 0
+            },
+            legend: {
+                orientation: 'h',
+                yanchor: 'bottom',
+                y: -0.5,  // Adjusted to move legend lower
+                xanchor: 'center',
+                x: 0.5,
+                title: { 
+                    text: 'Jailbreak Source',
+                    side: 'top'
+                },
+                traceorder: 'normal',
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                bordercolor: '#e2e8f0',
+                borderwidth: 1
+            },
+            margin: { 
+                l: 60,
+                r: 30,
+                t: 40,
+                b: 150  // Increased bottom margin to accommodate legend
+            }
+        };
+
+        if (!document.querySelector('.back-button')) {
+            const backButton = document.createElement('button');
+            backButton.textContent = '← Back to Types View';
+            backButton.className = 'back-button';
+            backButton.onclick = createTypeView;
+            document.getElementById('jailbreakPlot').parentNode.insertBefore(
+                backButton,
+                document.getElementById('jailbreakPlot')
+            );
         }
 
-        const sources = sourceMapping[selectedType];
-        const processedData = data.map(d => ({
-            safeguard: d.safeguard,
-            types: sources.map(source => ({
-                type: source.replace('jailbreak_source_', '').replace(/_/g, ' '),
-                value: Math.min(100, parseFloat(d[source] || 0) * 100)
-            }))
-        }));
-        createVisualization(processedData, 'source', selectedType);
+        Plotly.newPlot('jailbreakPlot', traces, layout, {
+            responsive: true,
+            displayModeBar: false
+        });
     }
 
-    function createSyntacticTable(data, sources) {
-        // Clear existing content
-        const container = d3.select("#jailbreakPlot").html("");
+    function createSyntacticTable(type) {
+        currentView = 'source';
+        currentType = type;
 
-        // Add back button
-        const backButton = container.append("button")
-            .attr("class", "back-button")
-            .style("margin", "10px")
-            .style("padding", "5px 10px")
-            .text("← Back")
-            .on("click", createTypeView);
+        // Clear the plot div
+        const plotDiv = document.getElementById('jailbreakPlot');
+        plotDiv.style.display = 'none';
+
+        // Remove any existing table
+        const existingTable = document.querySelector('.syntactic-table');
+        if (existingTable) existingTable.remove();
 
         // Create table
-        const table = container.append("table")
-            .style("width", "100%")
-            .style("border-collapse", "collapse")
-            .style("margin-top", "20px");
+        const table = document.createElement('table');
+        table.className = 'syntactic-table';
 
-        // Add header
-        const header = table.append("thead").append("tr");
-        header.append("th")
-            .style("padding", "10px")
-            .style("border", "1px solid #ddd")
-            .style("background-color", "#f8f9fa")
-            .text("Safeguard");
+        // Get sources for syntactic type
+        const syntacticSources = typeToSourceMapping[type];
+        
+        // Format source names for header
+        const sourceHeaders = syntacticSources.map(source => 
+            source.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ')
+        );
 
-        sources.forEach(source => {
-            header.append("th")
-                .style("padding", "10px")
-                .style("border", "1px solid #ddd")
-                .style("background-color", "#f8f9fa")
-                .text(source.replace('jailbreak_source_', '').replace(/_/g, ' '));
+        // Create header
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = `
+            <th>Safeguard</th>
+            ${sourceHeaders.map(header => `<th>${header}</th>`).join('')}
+        `;
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create body
+        const tbody = document.createElement('tbody');
+        data.forEach(safeguard => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${safeguard.safeguard}</td>
+                ${syntacticSources.map(source => `
+                    <td>${(parseFloat(safeguard[`jailbreak_source_${source}`]) * 100).toFixed(1)}%</td>
+                `).join('')}
+            `;
+            tbody.appendChild(row);
         });
+        table.appendChild(tbody);
 
-        // Add data rows
-        const tbody = table.append("tbody");
-        data.forEach(d => {
-            const row = tbody.append("tr");
-            row.append("td")
-                .style("padding", "10px")
-                .style("border", "1px solid #ddd")
-                .style("font-weight", "bold")
-                .text(d.safeguard);
-
-            sources.forEach(source => {
-                const value = parseFloat(d[source] || 0) * 100;
-                row.append("td")
-                    .style("padding", "10px")
-                    .style("border", "1px solid #ddd")
-                    .style("background-color", value > 0 ? "#e6f3ff" : "white")
-                    .text(`${value.toFixed(1)}%`);
-            });
-        });
-    }
-
-    function createVisualization(processedData, viewType, selectedType = null) {
-        console.log("Creating visualization with:", {
-            viewType,
-            selectedType,
-            dataLength: processedData.length,
-            sampleData: processedData[0]
-        });
-
-        // Validate data structure
-        if (!processedData || !processedData.length) {
-            console.error("No data provided");
-            return;
+        // Add back button
+        if (!document.querySelector('.back-button')) {
+            const backButton = document.createElement('button');
+            backButton.textContent = '← Back to Types View';
+            backButton.className = 'back-button';
+            backButton.onclick = createTypeView;
+            plotDiv.parentNode.insertBefore(backButton, plotDiv);
         }
 
-        if (!processedData[0].types || !processedData[0].types.length) {
-            console.error("Invalid data structure - missing types array");
-            return;
-        }
-
-        // Clear existing content
-        d3.select("#jailbreakPlot").html("");
-
-        // Adjust margins for source view to accommodate more labels
-        const adjustedMargin = viewType === 'source' ? 
-            { ...margin, bottom: 160 } : // More space for rotated labels
-            margin;
-
-        const svg = d3.select("#jailbreakPlot")
-            .append("svg")
-            .attr("width", "100%")
-            .attr("height", "100%")
-            .attr("viewBox", `0 0 ${width + adjustedMargin.left + adjustedMargin.right} ${height + adjustedMargin.top + adjustedMargin.bottom}`)
-            .attr("preserveAspectRatio", "xMidYMid meet")
-            .style("background", "#ffffff")
-            .append("g")
-            .attr("transform", `translate(${adjustedMargin.left},${adjustedMargin.top})`);
-
-        // Add back button for source view
-        if (viewType === 'source') {
-            const backButton = svg.append("g")
-                .attr("class", "back-button")
-                .attr("transform", "translate(-130, -40)")
-                .style("cursor", "pointer")
-                .on("click", createTypeView);
-
-            backButton.append("rect")
-                .attr("width", 80)
-                .attr("height", 30)
-                .attr("rx", 5)
-                .attr("fill", "#e2e8f0");
-
-            backButton.append("text")
-                .attr("x", 40)
-                .attr("y", 20)
-                .attr("text-anchor", "middle")
-                .text("← Back");
-        }
-
-        // Get unique types for the domain
-        const types = processedData[0].types.map(d => d.type);
-        console.log("Types for visualization:", types);
-
-        if (types.length === 0) {
-            console.error("No types found in data");
-            return;
-        }
-
-        // Adjust padding based on number of types
-        const x0Padding = viewType === 'source' ? 0.2 : 0.1;
-        const x1Padding = viewType === 'source' ? 0.1 : 0.05;
-
-        // Scales with adjusted padding
-        const x0 = d3.scaleBand()
-            .domain(processedData.map(d => d.safeguard))
-            .range([0, width])
-            .padding(x0Padding);
-
-        const x1 = d3.scaleBand()
-            .domain(types)
-            .range([0, x0.bandwidth()])
-            .padding(x1Padding);
-
-        const y = d3.scaleLinear()
-            .domain([0, 100])
-            .range([height, 0]);
-
-        // Use a different color scheme for source view with more categories
-        const color = d3.scaleOrdinal()
-            .domain(types)
-            .range(viewType === 'type' ? 
-                ['#0567a5', '#4a90e2', '#7cb9e8'] : 
-                d3.schemeBlues[Math.max(types.length, 3)]);
-
-        // Add grid lines
-        svg.append("g")
-            .attr("class", "grid")
-            .call(d3.axisLeft(y)
-                .tickSize(-width)
-                .tickFormat("")
-                .ticks(5))
-            .style("stroke-opacity", 0.1);
-
-        // Add bars
-        processedData.forEach(d => {
-            const safeguardGroup = svg.append("g")
-                .attr("transform", `translate(${x0(d.safeguard)},0)`);
-
-            safeguardGroup.selectAll("rect")
-                .data(d.types)
-                .enter()
-                .append("rect")
-                .attr("x", d => x1(d.type))
-                .attr("y", d => y(d.value))
-                .attr("width", x1.bandwidth())
-                .attr("height", d => height - y(d.value))
-                .attr("fill", d => color(d.type))
-                .attr("rx", 6)
-                .attr("ry", 6)
-                .style("cursor", viewType === 'type' ? "pointer" : "default")
-                .on("click", function(event, d) {
-                    if (viewType === 'type') {
-                        createSourceView(d.type);
-                    }
-                });
-
-            // Add value labels
-            safeguardGroup.selectAll(".value-label")
-                .data(d.types)
-                .enter()
-                .append("text")
-                .attr("class", "value-label")
-                .attr("x", d => x1(d.type) + x1.bandwidth()/2)
-                .attr("y", d => {
-                    const yPos = y(d.value) - 5;
-                    return yPos < 0 ? y(d.value) + 15 : yPos;
-                })
-                .attr("text-anchor", "middle")
-                .style("font-size", "12px")
-                .style("fill", d => y(d.value) < 15 ? "white" : "black")
-                .text(d => `${d.value.toFixed(1)}%`);
-        });
-
-        // Adjust x-axis labels for better readability in source view
-        svg.append("g")
-            .attr("class", "x-axis")
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x0))
-            .selectAll("text")
-            .attr("transform", `rotate(-45)`)
-            .style("text-anchor", "end")
-            .style("font-size", viewType === 'source' ? "10px" : "12px");  // Smaller font for source view
-
-        svg.append("g")
-            .attr("class", "y-axis")
-            .call(d3.axisLeft(y)
-                .ticks(5)
-                .tickFormat(d => d + "%"));
-
-        // Add title
-        const title = viewType === 'type' ? 
-            "Jailbreak Detection Rate by Type" : 
-            `${selectedType} Jailbreak Sources Detection Rate`;
-
-        svg.append("text")
-            .attr("class", "plot-title")
-            .attr("x", width/2)
-            .attr("y", -adjustedMargin.top/2)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
-            .style("font-weight", "bold")
-            .text(title);
-
-        // Add legend
-        const legend = svg.append("g")
-            .attr("class", "legend")
-            .attr("transform", `translate(${width + 20}, 0)`);
-
-        processedData[0].types.forEach((type, i) => {
-            const legendRow = legend.append("g")
-                .attr("transform", `translate(0, ${i * 25})`);
-            
-            legendRow.append("rect")
-                .attr("width", 15)
-                .attr("height", 15)
-                .attr("fill", color(type.type));
-                
-            legendRow.append("text")
-                .attr("x", 25)
-                .attr("y", 12)
-                .style("font-size", "12px")
-                .text(type.type);
-        });
+        // Add table to plot div
+        plotDiv.parentNode.insertBefore(table, plotDiv.nextSibling);
     }
 
     // Initialize with type view
@@ -839,6 +831,123 @@ function toggleInterpretation(interpretationId) {
     }
 }
 
+function createSensitivityAnalysis(data) {
+    // Common layout settings
+    const commonLayout = {
+        barmode: 'group',
+        bargap: 0.15,
+        bargroupgap: 0.1,
+        xaxis: {
+            title: 'Safeguards',
+            tickfont: { size: 12 },
+            tickangle: -45
+        },
+        yaxis: {
+            title: 'Detection Rate',
+            range: [0, 1],
+            tickformat: ',.0%',
+            gridcolor: '#e2e8f0',
+            gridwidth: 1
+        },
+        legend: {
+            title: { text: 'Content Category' },
+            orientation: 'h',
+            y: -0.3,
+            xanchor: 'center',
+            x: 0.5,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            bordercolor: '#e2e8f0',
+            borderwidth: 1
+        },
+        margin: { l: 60, r: 20, t: 40, b: 120 },
+        height: 500,
+        showlegend: true,
+        hovermode: 'closest',
+        hoverlabel: { 
+            bgcolor: '#1e293b',  // Dark background for better contrast
+            bordercolor: '#475569',
+            font: { 
+                size: 13,
+                color: 'white'  // White text for better visibility
+            }
+        },
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white'
+    };
+
+    // Color scheme with better contrast and opacity
+    const colors = {
+        benign: 'rgba(75, 85, 99, 0.85)',
+        borderline: 'rgba(245, 158, 11, 0.85)',
+        harmful: 'rgba(220, 38, 38, 0.85)'
+    };
+
+    // Common trace settings
+    const createTrace = (name, color, borderColor, yValues) => ({
+        name,
+        x: data.map(d => d.safeguard),
+        y: yValues,
+        type: 'bar',
+        marker: { 
+            color,
+            line: {
+                color: borderColor,
+                width: 1
+            },
+            shape: 'rounded',  // Rounded corners for bars
+            radius: 4         // Radius size for rounded corners
+        },
+        hovertemplate: `<b>%{x}</b><br>${name}: %{y:.1%}<extra></extra>`,
+        hoverlabel: {
+            align: 'left'
+        }
+    });
+
+    // Create traces for standard content
+    const standardTraces = [
+        createTrace('Benign', colors.benign, 'rgba(75, 85, 99, 1)', 
+            data.map(d => parseFloat(d['benign_non-adversarial']))),
+        createTrace('Borderline', colors.borderline, 'rgba(245, 158, 11, 1)', 
+            data.map(d => parseFloat(d['borderline_non-adversarial']))),
+        createTrace('Harmful', colors.harmful, 'rgba(220, 38, 38, 1)', 
+            data.map(d => parseFloat(d['harmful_non-adversarial'])))
+    ];
+
+    // Create traces for adversarial content
+    const adversarialTraces = [
+        createTrace('Benign', colors.benign, 'rgba(75, 85, 99, 1)', 
+            data.map(d => parseFloat(d['benign_jailbreaks']))),
+        createTrace('Borderline', colors.borderline, 'rgba(245, 158, 11, 1)', 
+            data.map(d => parseFloat(d['borderline_jailbreaks']))),
+        createTrace('Harmful', colors.harmful, 'rgba(220, 38, 38, 1)', 
+            data.map(d => parseFloat(d['harmful_jailbreaks'])))
+    ];
+
+    const config = {
+        responsive: true,
+        displayModeBar: false,
+        staticPlot: false
+    };
+
+    Plotly.newPlot('harmfulnessSensitivityPlot', 
+        standardTraces, 
+        {
+            ...commonLayout, 
+            title: 'Standard Content Sensitivity'
+        },
+        config
+    );
+
+    Plotly.newPlot('adversarialSensitivityPlot', 
+        adversarialTraces, 
+        {
+            ...commonLayout, 
+            title: 'Adversarial Content Sensitivity'
+        },
+        config
+    );
+}
+
 // Initialize interpretation sections on page load
 document.addEventListener('DOMContentLoaded', function() {
     const interpretationContents = document.querySelectorAll('.interpretation-content');
@@ -855,6 +964,7 @@ document.addEventListener('DOMContentLoaded', function() {
             createHeatmap(data);
             createFPRComparison(data);
             createJailbreakComparison(data);
+            createSensitivityAnalysis(data);
         }
     }).catch(error => {
         console.error('Error loading data:', error);
