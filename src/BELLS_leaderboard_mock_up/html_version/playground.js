@@ -128,6 +128,66 @@ function updateDynamicFilters(contentType) {
     `;
 }
 
+function samplePrompts(prompts, maxPerCategory = 2) {
+    // Group prompts by category, jailbreak type AND source
+    const groupedPrompts = {};
+    
+    prompts.forEach(prompt => {
+        const category = prompt.category;
+        const jailbreakType = prompt.jailbreak_type;
+        const jailbreakSource = prompt.jailbreak_source;
+        
+        // Create nested structure
+        if (!groupedPrompts[category]) groupedPrompts[category] = {};
+        if (!groupedPrompts[category][jailbreakType]) {
+            groupedPrompts[category][jailbreakType] = {};
+        }
+        if (!groupedPrompts[category][jailbreakType][jailbreakSource]) {
+            groupedPrompts[category][jailbreakType][jailbreakSource] = [];
+        }
+        
+        groupedPrompts[category][jailbreakType][jailbreakSource].push(prompt);
+    });
+    
+    // Sample prompts from each combination
+    const sampledPrompts = [];
+    
+    Object.entries(groupedPrompts).forEach(([category, typeGroups]) => {
+        Object.entries(typeGroups).forEach(([type, sourceGroups]) => {
+            Object.entries(sourceGroups).forEach(([source, prompts]) => {
+                // Take 1 prompt from each unique combination
+                const sample = prompts
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 1);  // Take just one from each combination
+                sampledPrompts.push(...sample);
+            });
+        });
+    });
+    
+    // If still too many prompts, take a random subset while ensuring at least
+    // one example from each jailbreak source
+    const maxTotalPrompts = 15;
+    if (sampledPrompts.length > maxTotalPrompts) {
+        // First, ensure we have one from each source
+        const sources = [...new Set(sampledPrompts.map(p => p.jailbreak_source))];
+        const guaranteedSamples = sources.map(source => {
+            const sourcePrompts = sampledPrompts.filter(p => p.jailbreak_source === source);
+            return sourcePrompts[Math.floor(Math.random() * sourcePrompts.length)];
+        });
+        
+        // Then fill the remaining slots randomly
+        const remainingSlots = maxTotalPrompts - guaranteedSamples.length;
+        const remainingPrompts = sampledPrompts
+            .filter(p => !guaranteedSamples.includes(p))
+            .sort(() => 0.5 - Math.random())
+            .slice(0, remainingSlots);
+        
+        return [...guaranteedSamples, ...remainingPrompts];
+    }
+    
+    return sampledPrompts;
+}
+
 function updatePlayground() {
     const datasetType = document.querySelector('input[name="datasetType"]:checked').value;
     const contentType = document.querySelector('input[name="contentType"]:checked').value;
@@ -154,7 +214,12 @@ function updatePlayground() {
     
     // Get and filter dataset
     let currentDataset = window.loadedData.datasets[datasetType][contentType];
-    console.log('Initial dataset:', currentDataset);
+    
+    // If adversarial content, sample the prompts before applying filters
+    if (contentType === 'Adversarial') {
+        currentDataset = samplePrompts(currentDataset);
+        console.log('Sampled dataset size:', currentDataset.length);
+    }
     
     // Apply filters
     if (selectedCategory !== 'All') {
@@ -172,6 +237,13 @@ function updatePlayground() {
         if (selectedJailbreakSource !== 'All') {
             currentDataset = currentDataset.filter(prompt => prompt.jailbreak_source === selectedJailbreakSource);
         }
+    }
+
+    if (searchTerm) {
+        currentDataset = currentDataset.filter(prompt => 
+            prompt.question.toLowerCase().includes(searchTerm) ||
+            (prompt.jailbreak_prompt && prompt.jailbreak_prompt.toLowerCase().includes(searchTerm))
+        );
     }
 
     console.log('Filtered dataset:', currentDataset);
@@ -205,9 +277,6 @@ function updatePlayground() {
                 <h5 class="card-title">${prompt.question}</h5>
                 <div class="detection-badges mb-3">
                     ${detectionResults.map(result => {
-                        // For benign content, detection is bad (false positive)
-                        // For harmful content, detection is good (true positive)
-                        // For borderline, use neutral colors
                         let badgeClass;
                         let icon;
                         if (datasetType === 'Benign') {
